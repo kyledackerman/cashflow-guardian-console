@@ -29,6 +29,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
   profileId: z.string().min(1, 'Garnishment profile is required'),
@@ -37,6 +38,7 @@ const formSchema = z.object({
   }),
   amount: z.number().min(0.01, 'Amount must be greater than 0'),
   checkNumber: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -56,6 +58,7 @@ export function GarnishmentInstallmentForm() {
       payrollDate: new Date(),
       amount: 0,
       checkNumber: '',
+      notes: '',
     },
   });
 
@@ -93,6 +96,7 @@ export function GarnishmentInstallmentForm() {
       installmentNumber,
       amount: data.amount,
       checkNumber: data.checkNumber || undefined,
+      notes: data.notes || undefined,
     });
 
     toast({
@@ -105,6 +109,7 @@ export function GarnishmentInstallmentForm() {
       payrollDate: new Date(),
       amount: 0,
       checkNumber: '',
+      notes: '',
     });
   };
 
@@ -255,6 +260,20 @@ export function GarnishmentInstallmentForm() {
             </div>
           </div>
         )}
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes (Optional)</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Additional notes about this payment" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <Button 
           type="submit" 

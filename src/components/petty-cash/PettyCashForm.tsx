@@ -32,6 +32,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
   date: z.date({
@@ -41,6 +42,7 @@ const formSchema = z.object({
   type: z.enum(['credit', 'debit']),
   employee: z.string().optional(),
   purpose: z.string().optional(),
+  notes: z.string().optional(),
   approved: z.boolean().default(false),
 });
 
@@ -58,6 +60,7 @@ export function PettyCashForm() {
       type: 'debit',
       employee: 'none',
       purpose: '',
+      notes: '',
       approved: false,
     },
   });
@@ -69,6 +72,7 @@ export function PettyCashForm() {
       type: data.type,
       employee: data.employee === 'none' ? undefined : data.employee,
       purpose: data.purpose || undefined,
+      notes: data.notes || undefined,
       approved: data.approved,
     });
 
@@ -83,6 +87,7 @@ export function PettyCashForm() {
       type: 'debit',
       employee: 'none',
       purpose: '',
+      notes: '',
       approved: false,
     });
   };
@@ -211,7 +216,21 @@ export function PettyCashForm() {
             <FormItem>
               <FormLabel>Purpose (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="Description of transaction" {...field} />
+                <Textarea placeholder="Description of transaction" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes (Optional)</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Additional notes about this transaction" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

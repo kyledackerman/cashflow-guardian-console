@@ -77,6 +77,7 @@ export function GarnishmentProfiles() {
                   <TableHead>Paid So Far</TableHead>
                   <TableHead>Balance Remaining</TableHead>
                   <TableHead>Next Due Date</TableHead>
+                  <TableHead>Notes</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -98,6 +99,11 @@ export function GarnishmentProfiles() {
                       </Badge>
                     </TableCell>
                     <TableCell>{getNextDueDate(profile.id)}</TableCell>
+                    <TableCell>
+                      <div className="max-w-[150px] truncate text-sm">
+                        {profile.notes || '-'}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Button
                         variant="outline"
@@ -169,6 +175,7 @@ export function GarnishmentProfiles() {
                         <TableHead>Payroll Date</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Check Number</TableHead>
+                        <TableHead>Notes</TableHead>
                         <TableHead>Created</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -183,6 +190,11 @@ export function GarnishmentProfiles() {
                             {formatCurrency(installment.amount)}
                           </TableCell>
                           <TableCell>{installment.checkNumber || '-'}</TableCell>
+                          <TableCell>
+                            <div className="max-w-[150px] truncate text-sm">
+                              {installment.notes || '-'}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             {format(new Date(installment.createdAt), 'MM/dd/yyyy')}
                           </TableCell>

@@ -26,7 +26,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, Filter, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { CalendarIcon, Filter, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function PettyCashTable() {
@@ -38,6 +38,7 @@ export function PettyCashTable() {
     dateFrom: undefined as Date | undefined,
     dateTo: undefined as Date | undefined,
   });
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -64,6 +65,16 @@ export function PettyCashTable() {
 
   const toggleApproval = (transaction: PettyCashTransaction) => {
     updatePettyCashTransaction(transaction.id, { approved: !transaction.approved });
+  };
+
+  const toggleRowExpansion = (transactionId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(transactionId)) {
+      newExpanded.delete(transactionId);
+    } else {
+      newExpanded.add(transactionId);
+    }
+    setExpandedRows(newExpanded);
   };
 
   const clearFilters = () => {
@@ -169,6 +180,7 @@ export function PettyCashTable() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead></TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Amount</TableHead>
@@ -181,7 +193,7 @@ export function PettyCashTable() {
           <TableBody>
             {filteredTransactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   No transactions found
                 </TableCell>
               </TableRow>
@@ -189,52 +201,95 @@ export function PettyCashTable() {
               filteredTransactions
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                 .map((transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell>
-                      {format(new Date(transaction.date), 'MM/dd/yyyy')}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={transaction.type === 'credit' ? 'default' : 'secondary'}>
-                        {transaction.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className={transaction.type === 'credit' ? 'text-success' : 'text-destructive'}>
-                      {formatCurrency(transaction.amount)}
-                    </TableCell>
-                    <TableCell>{transaction.employee || '-'}</TableCell>
-                    <TableCell>{transaction.purpose || '-'}</TableCell>
-                    <TableCell>
-                      {transaction.approved ? (
-                        <Badge variant="default" className="bg-success text-success-foreground">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Approved
+                  <>
+                    <TableRow key={transaction.id}>
+                      <TableCell>
+                        {(transaction.purpose || transaction.notes) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleRowExpansion(transaction.id)}
+                            className="p-0 h-auto"
+                          >
+                            {expandedRows.has(transaction.id) ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(transaction.date), 'MM/dd/yyyy')}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={transaction.type === 'credit' ? 'default' : 'secondary'}>
+                          {transaction.type}
                         </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="bg-warning text-warning-foreground">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Pending
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toggleApproval(transaction)}
-                        >
-                          {transaction.approved ? 'Unapprove' : 'Approve'}
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deletePettyCashTransaction(transaction.id)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell className={transaction.type === 'credit' ? 'text-success' : 'text-destructive'}>
+                        {formatCurrency(transaction.amount)}
+                      </TableCell>
+                      <TableCell>{transaction.employee || '-'}</TableCell>
+                      <TableCell>
+                        <div className="max-w-[200px] truncate">
+                          {transaction.purpose || '-'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {transaction.approved ? (
+                          <Badge variant="default" className="bg-success text-success-foreground">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Approved
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-warning text-warning-foreground">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Pending
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleApproval(transaction)}
+                          >
+                            {transaction.approved ? 'Unapprove' : 'Approve'}
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deletePettyCashTransaction(transaction.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    {expandedRows.has(transaction.id) && (transaction.purpose || transaction.notes) && (
+                      <TableRow>
+                        <TableCell></TableCell>
+                        <TableCell colSpan={7} className="bg-muted/50">
+                          <div className="py-2 space-y-2">
+                            {transaction.purpose && (
+                              <div>
+                                <span className="font-medium text-sm">Purpose: </span>
+                                <span className="text-sm">{transaction.purpose}</span>
+                              </div>
+                            )}
+                            {transaction.notes && (
+                              <div>
+                                <span className="font-medium text-sm">Notes: </span>
+                                <span className="text-sm">{transaction.notes}</span>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 ))
             )}
           </TableBody>

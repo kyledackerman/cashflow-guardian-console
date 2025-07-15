@@ -4,7 +4,8 @@ export interface PettyCashTransaction {
   amount: number;
   type: 'credit' | 'debit';
   employee?: string;
-  purpose?: string;
+  purpose?: string; // Keep for backward compatibility
+  notes?: string;
   approved: boolean;
   createdAt: Date;
 }
@@ -36,6 +37,7 @@ export interface GarnishmentProfile {
   totalAmountOwed: number;
   amountPaidSoFar: number;
   balanceRemaining: number;
+  notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +50,7 @@ export interface GarnishmentInstallment {
   installmentNumber: number;
   amount: number;
   checkNumber?: string;
+  notes?: string;
   createdAt: Date;
 }
 

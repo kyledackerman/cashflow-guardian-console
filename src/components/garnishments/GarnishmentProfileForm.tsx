@@ -20,11 +20,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
   employee: z.string().min(1, 'Employee is required'),
   creditor: z.string().min(1, 'Creditor/Case is required'),
   totalAmountOwed: z.number().min(0.01, 'Total amount owed must be greater than 0'),
+  notes: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -39,6 +41,7 @@ export function GarnishmentProfileForm() {
       employee: '',
       creditor: '',
       totalAmountOwed: 0,
+      notes: '',
     },
   });
 
@@ -47,6 +50,7 @@ export function GarnishmentProfileForm() {
       employee: data.employee,
       creditor: data.creditor,
       totalAmountOwed: data.totalAmountOwed,
+      notes: data.notes || undefined,
     });
 
     toast({
@@ -58,6 +62,7 @@ export function GarnishmentProfileForm() {
       employee: '',
       creditor: '',
       totalAmountOwed: 0,
+      notes: '',
     });
   };
 
@@ -125,6 +130,20 @@ export function GarnishmentProfileForm() {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes (Optional)</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Additional notes about this garnishment" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <Button type="submit" className="w-full shadow-button">
           Create Garnishment Profile

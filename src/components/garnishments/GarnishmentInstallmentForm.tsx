@@ -37,7 +37,7 @@ const formSchema = z.object({
     required_error: 'Payroll date is required.',
   }),
   amount: z.number().min(0.01, 'Amount must be greater than 0'),
-  checkNumber: z.string().optional(),
+  checkNumber: z.string().min(1, 'Check number is required'),
   notes: z.string().optional(),
 });
 
@@ -57,7 +57,7 @@ export function GarnishmentInstallmentForm() {
       profileId: '',
       payrollDate: new Date(),
       amount: 0,
-      checkNumber: '',
+      checkNumber: undefined,
       notes: '',
     },
   });
@@ -95,7 +95,7 @@ export function GarnishmentInstallmentForm() {
       payrollDate: data.payrollDate,
       installmentNumber,
       amount: data.amount,
-      checkNumber: data.checkNumber || undefined,
+      checkNumber: data.checkNumber,
       notes: data.notes || undefined,
     });
 
@@ -108,7 +108,7 @@ export function GarnishmentInstallmentForm() {
       profileId: '',
       payrollDate: new Date(),
       amount: 0,
-      checkNumber: '',
+      checkNumber: undefined,
       notes: '',
     });
   };
@@ -232,9 +232,9 @@ export function GarnishmentInstallmentForm() {
             name="checkNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Check Number (Optional)</FormLabel>
+                <FormLabel>Check Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="Check or reference number" {...field} />
+                  <Input placeholder="Enter check or reference number" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

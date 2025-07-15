@@ -18,14 +18,19 @@ const navigation = [
     icon: DollarSign,
   },
   {
+    name: 'Employees',
+    href: '/employees',
+    icon: Users,
+  },
+  {
     name: 'Employee Loans',
     href: '/loans',
-    icon: Users,
+    icon: Receipt,
   },
   {
     name: 'Garnishments',
     href: '/garnishments',
-    icon: Receipt,
+    icon: Menu,
   },
 ];
 

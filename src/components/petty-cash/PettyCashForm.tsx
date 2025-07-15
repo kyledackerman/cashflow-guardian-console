@@ -56,7 +56,7 @@ export function PettyCashForm() {
       date: new Date(),
       amount: 0,
       type: 'debit',
-      employee: '',
+      employee: 'none',
       purpose: '',
       approved: false,
     },
@@ -67,7 +67,7 @@ export function PettyCashForm() {
       date: data.date,
       amount: data.amount,
       type: data.type,
-      employee: data.employee || undefined,
+      employee: data.employee === 'none' ? undefined : data.employee,
       purpose: data.purpose || undefined,
       approved: data.approved,
     });
@@ -81,7 +81,7 @@ export function PettyCashForm() {
       date: new Date(),
       amount: 0,
       type: 'debit',
-      employee: '',
+      employee: 'none',
       purpose: '',
       approved: false,
     });
@@ -190,7 +190,7 @@ export function PettyCashForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {employees.map((employee) => (
                       <SelectItem key={employee.id} value={employee.name}>
                         {employee.name}

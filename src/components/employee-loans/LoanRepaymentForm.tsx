@@ -137,9 +137,9 @@ export function LoanRepaymentForm() {
                   </FormControl>
                   <SelectContent>
                     {employeesWithLoans.length === 0 ? (
-                      <SelectItem value="" disabled>
+                      <div className="py-2 px-3 text-sm text-muted-foreground">
                         No employees with outstanding loans
-                      </SelectItem>
+                      </div>
                     ) : (
                       employeesWithLoans.map((employee) => (
                         <SelectItem key={employee.id} value={employee.name}>

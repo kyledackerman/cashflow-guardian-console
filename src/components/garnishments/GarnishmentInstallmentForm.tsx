@@ -133,9 +133,9 @@ export function GarnishmentInstallmentForm() {
                   </FormControl>
                   <SelectContent>
                     {activeProfiles.length === 0 ? (
-                      <SelectItem value="" disabled>
+                      <div className="py-2 px-3 text-sm text-muted-foreground">
                         No active garnishments found
-                      </SelectItem>
+                      </div>
                     ) : (
                       activeProfiles.map((profile) => (
                         <SelectItem key={profile.id} value={profile.id}>

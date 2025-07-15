@@ -32,9 +32,9 @@ import { cn } from '@/lib/utils';
 export function PettyCashTable() {
   const { pettyCashTransactions, updatePettyCashTransaction, deletePettyCashTransaction } = useFinanceStore();
   const [filters, setFilters] = useState({
-    type: '',
-    employee: '',
-    approved: '',
+    type: 'all',
+    employee: 'all',
+    approved: 'all',
     dateFrom: undefined as Date | undefined,
     dateTo: undefined as Date | undefined,
   });
@@ -48,8 +48,8 @@ export function PettyCashTable() {
 
   const filteredTransactions = useMemo(() => {
     return pettyCashTransactions.filter((transaction) => {
-      if (filters.type && transaction.type !== filters.type) return false;
-      if (filters.employee && transaction.employee !== filters.employee) return false;
+      if (filters.type !== 'all' && transaction.type !== filters.type) return false;
+      if (filters.employee !== 'all' && transaction.employee !== filters.employee) return false;
       if (filters.approved === 'approved' && !transaction.approved) return false;
       if (filters.approved === 'pending' && transaction.approved) return false;
       if (filters.dateFrom && transaction.date < filters.dateFrom) return false;
@@ -68,9 +68,9 @@ export function PettyCashTable() {
 
   const clearFilters = () => {
     setFilters({
-      type: '',
-      employee: '',
-      approved: '',
+      type: 'all',
+      employee: 'all',
+      approved: 'all',
       dateFrom: undefined,
       dateTo: undefined,
     });
@@ -88,7 +88,7 @@ export function PettyCashTable() {
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Types</SelectItem>
+            <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="credit">Credit</SelectItem>
             <SelectItem value="debit">Debit</SelectItem>
           </SelectContent>
@@ -102,7 +102,7 @@ export function PettyCashTable() {
             <SelectValue placeholder="All Employees" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Employees</SelectItem>
+            <SelectItem value="all">All Employees</SelectItem>
             {uniqueEmployees.map((employee) => (
               <SelectItem key={employee} value={employee!}>
                 {employee}
@@ -119,7 +119,7 @@ export function PettyCashTable() {
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Status</SelectItem>
+            <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="approved">Approved</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
           </SelectContent>

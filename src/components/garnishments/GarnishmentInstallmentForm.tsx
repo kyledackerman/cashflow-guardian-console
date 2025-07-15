@@ -1,0 +1,269 @@
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { useToast } from '@/hooks/use-toast';
+
+const formSchema = z.object({
+  profileId: z.string().min(1, 'Garnishment profile is required'),
+  payrollDate: z.date({
+    required_error: 'Payroll date is required.',
+  }),
+  amount: z.number().min(0.01, 'Amount must be greater than 0'),
+  checkNumber: z.string().optional(),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+export function GarnishmentInstallmentForm() {
+  const { 
+    addGarnishmentInstallment, 
+    garnishmentProfiles, 
+    garnishmentInstallments 
+  } = useFinanceStore();
+  const { toast } = useToast();
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      profileId: '',
+      payrollDate: new Date(),
+      amount: 0,
+      checkNumber: '',
+    },
+  });
+
+  // Get active profiles (with remaining balance)
+  const activeProfiles = garnishmentProfiles.filter(profile => profile.balanceRemaining > 0);
+
+  const selectedProfileId = form.watch('profileId');
+  const selectedProfile = garnishmentProfiles.find(p => p.id === selectedProfileId);
+
+  // Get next installment number for selected profile
+  const getNextInstallmentNumber = (profileId: string) => {
+    const profileInstallments = garnishmentInstallments.filter(i => i.profileId === profileId);
+    return profileInstallments.length + 1;
+  };
+
+  const onSubmit = (data: FormData) => {
+    if (!selectedProfile) return;
+
+    // Validate amount doesn't exceed remaining balance
+    if (data.amount > selectedProfile.balanceRemaining) {
+      toast({
+        title: 'Invalid Amount',
+        description: `Payment amount cannot exceed remaining balance of $${selectedProfile.balanceRemaining.toFixed(2)}.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const installmentNumber = getNextInstallmentNumber(data.profileId);
+
+    addGarnishmentInstallment({
+      profileId: data.profileId,
+      employee: selectedProfile.employee,
+      payrollDate: data.payrollDate,
+      installmentNumber,
+      amount: data.amount,
+      checkNumber: data.checkNumber || undefined,
+    });
+
+    toast({
+      title: 'Installment Added',
+      description: `Payment #${installmentNumber} of $${data.amount.toFixed(2)} recorded for ${selectedProfile.employee}.`,
+    });
+
+    form.reset({
+      profileId: '',
+      payrollDate: new Date(),
+      amount: 0,
+      checkNumber: '',
+    });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="profileId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Garnishment Profile</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select garnishment profile" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {activeProfiles.length === 0 ? (
+                      <SelectItem value="" disabled>
+                        No active garnishments found
+                      </SelectItem>
+                    ) : (
+                      activeProfiles.map((profile) => (
+                        <SelectItem key={profile.id} value={profile.id}>
+                          {profile.employee} - {profile.creditor} ({formatCurrency(profile.balanceRemaining)} remaining)
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="payrollDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Payroll Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          'w-full pl-3 text-left font-normal',
+                          !field.value && 'text-muted-foreground'
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, 'PPP')
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date('1900-01-01')
+                      }
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Installment Amount
+                  {selectedProfile && (
+                    <span className="text-sm text-muted-foreground ml-2">
+                      (Max: {formatCurrency(selectedProfile.balanceRemaining)})
+                    </span>
+                  )}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max={selectedProfile?.balanceRemaining}
+                    placeholder="0.00"
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="checkNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Check Number (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Check or reference number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {selectedProfile && (
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-muted p-4 rounded-lg">
+              <div className="text-sm text-muted-foreground">Employee</div>
+              <div className="font-medium">{selectedProfile.employee}</div>
+            </div>
+            <div className="bg-muted p-4 rounded-lg">
+              <div className="text-sm text-muted-foreground">Next Installment #</div>
+              <div className="font-medium">#{getNextInstallmentNumber(selectedProfile.id)}</div>
+            </div>
+            <div className="bg-muted p-4 rounded-lg">
+              <div className="text-sm text-muted-foreground">Balance Remaining</div>
+              <div className="font-bold text-destructive">
+                {formatCurrency(selectedProfile.balanceRemaining)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <Button 
+          type="submit" 
+          className="w-full shadow-button"
+          disabled={!selectedProfile}
+        >
+          Add Installment Payment
+        </Button>
+      </form>
+    </Form>
+  );
+}

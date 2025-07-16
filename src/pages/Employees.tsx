@@ -12,20 +12,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Edit, Search, Users, UserCheck, UserX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Employee } from '@/types/finance';
-import { useAuth } from '@/contexts/AuthContext';
-import { usePermissions, ROLE_PERMISSIONS } from '@/hooks/usePermissions';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { ROLE_PERMISSIONS } from '@/hooks/usePermissions';
 
 export default function Employees() {
   const { employees, addEmployee, updateEmployee, employeeLoanWithdrawals, employeeLoanRepayments, garnishmentProfiles } = useFinanceStore();
-  const { currentUser } = useAuth();
-  const permissions = usePermissions(currentUser?.permissions || []);
+  const { user } = useSupabaseAuth();
   const { toast } = useToast();
   
   // Check if there are any managers in the system (active or inactive)
   const hasAnyManagers = employees.some(emp => emp.role === 'manager');
   const hasActiveManagers = employees.some(emp => emp.active && emp.role === 'manager');
   const inactiveManagerCount = employees.filter(emp => !emp.active && emp.role === 'manager').length;
-  const canAddEmployees = permissions.canManageEmployees() || !hasAnyManagers;
+  const canAddEmployees = user !== null; // Allow authenticated users to manage employees
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);

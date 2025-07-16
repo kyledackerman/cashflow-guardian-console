@@ -11,18 +11,16 @@ import {
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { DollarSign, Download, Upload, Database, User, LogOut, ShieldCheck } from 'lucide-react';
-import { useRef, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { LoginDialog } from '@/components/auth/LoginDialog';
+import { useRef } from 'react';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export function Header() {
   const { pettyCashBalance, resetToDefaultData } = useFinanceStore();
   const { downloadBackup, restoreFromBackup, getLastBackupTime } = useBackupManager();
-  const { currentUser, logout } = useAuth();
+  const { user, signOut } = useSupabaseAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -104,24 +102,19 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          {currentUser ? (
+          {user && (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                <span className="text-sm font-medium">{currentUser.name}</span>
-                <Badge variant={currentUser.role === 'manager' ? "default" : "outline"}>
-                  {currentUser.role}
+                <span className="text-sm font-medium">{user.email}</span>
+                <Badge variant="default">
+                  Authenticated
                 </Badge>
               </div>
-              <Button variant="ghost" size="sm" onClick={logout}>
+              <Button variant="ghost" size="sm" onClick={signOut}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
-          ) : (
-            <Button variant="outline" size="sm" onClick={() => setShowLoginDialog(true)}>
-              <ShieldCheck className="h-4 w-4 mr-2" />
-              Manager Login
-            </Button>
           )}
           
           <input
@@ -133,11 +126,6 @@ export function Header() {
           />
         </div>
       </div>
-      
-      <LoginDialog 
-        open={showLoginDialog} 
-        onOpenChange={setShowLoginDialog}
-      />
     </header>
   );
 }

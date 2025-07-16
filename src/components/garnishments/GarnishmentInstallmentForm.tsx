@@ -5,8 +5,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useFinanceStore } from '@/hooks/useFinanceStore';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/contexts/AuthContext';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
@@ -54,8 +53,7 @@ export function GarnishmentInstallmentForm() {
     employees 
   } = useFinanceStore();
   const { toast } = useToast();
-  const { currentUser } = useAuth();
-  const permissions = usePermissions(currentUser?.permissions || []);
+  const { user } = useSupabaseAuth();
 
   // Only managers and admins can access this form
   const managersAndAdmins = employees.filter(emp => 

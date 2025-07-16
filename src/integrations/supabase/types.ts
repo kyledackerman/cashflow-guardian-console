@@ -14,16 +14,514 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      employee_loan_repayments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          employee_id: string | null
+          employee_name: string
+          id: string
+          notes: string | null
+          payroll_date: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string | null
+          employee_name: string
+          id?: string
+          notes?: string | null
+          payroll_date: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string | null
+          employee_name?: string
+          id?: string
+          notes?: string | null
+          payroll_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_loan_repayments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_loan_repayments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_loan_requests: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          employee_id: string | null
+          employee_name: string
+          id: string
+          notes: string | null
+          purpose: string
+          request_date: string
+          requested_amount: number
+          status: Database["public"]["Enums"]["loan_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string | null
+          employee_name: string
+          id?: string
+          notes?: string | null
+          purpose: string
+          request_date?: string
+          requested_amount: number
+          status?: Database["public"]["Enums"]["loan_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string | null
+          employee_name?: string
+          id?: string
+          notes?: string | null
+          purpose?: string
+          request_date?: string
+          requested_amount?: number
+          status?: Database["public"]["Enums"]["loan_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_loan_requests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_loan_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_loan_withdrawals: {
+        Row: {
+          amount: number
+          approved_by: string | null
+          approved_by_name: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          due_date: string
+          employee_id: string | null
+          employee_name: string
+          id: string
+          notes: string | null
+          requires_interest: boolean | null
+          status: Database["public"]["Enums"]["loan_status"]
+          total_outstanding_at_time: number | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_by?: string | null
+          approved_by_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          due_date: string
+          employee_id?: string | null
+          employee_name: string
+          id?: string
+          notes?: string | null
+          requires_interest?: boolean | null
+          status?: Database["public"]["Enums"]["loan_status"]
+          total_outstanding_at_time?: number | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_by?: string | null
+          approved_by_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          due_date?: string
+          employee_id?: string | null
+          employee_name?: string
+          id?: string
+          notes?: string | null
+          requires_interest?: boolean | null
+          status?: Database["public"]["Enums"]["loan_status"]
+          total_outstanding_at_time?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_loan_withdrawals_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_loan_withdrawals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_loan_withdrawals_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          permissions:
+            | Database["public"]["Enums"]["employee_permission"][]
+            | null
+          role: Database["public"]["Enums"]["employee_role"]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          permissions?:
+            | Database["public"]["Enums"]["employee_permission"][]
+            | null
+          role?: Database["public"]["Enums"]["employee_role"]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          permissions?:
+            | Database["public"]["Enums"]["employee_permission"][]
+            | null
+          role?: Database["public"]["Enums"]["employee_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      garnishment_documents: {
+        Row: {
+          description: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          id: string
+          installment_id: string | null
+          profile_id: string | null
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          description?: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          id?: string
+          installment_id?: string | null
+          profile_id?: string | null
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          description?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          installment_id?: string | null
+          profile_id?: string | null
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garnishment_documents_installment_id_fkey"
+            columns: ["installment_id"]
+            isOneToOne: false
+            referencedRelation: "garnishment_installments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garnishment_documents_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "garnishment_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garnishment_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garnishment_installments: {
+        Row: {
+          amount: number
+          check_number: string | null
+          created_at: string
+          employee_id: string | null
+          employee_name: string
+          id: string
+          installment_number: number
+          notes: string | null
+          payroll_date: string
+          profile_id: string
+          recorded_by: string | null
+          recorded_by_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          check_number?: string | null
+          created_at?: string
+          employee_id?: string | null
+          employee_name: string
+          id?: string
+          installment_number: number
+          notes?: string | null
+          payroll_date: string
+          profile_id: string
+          recorded_by?: string | null
+          recorded_by_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          check_number?: string | null
+          created_at?: string
+          employee_id?: string | null
+          employee_name?: string
+          id?: string
+          installment_number?: number
+          notes?: string | null
+          payroll_date?: string
+          profile_id?: string
+          recorded_by?: string | null
+          recorded_by_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garnishment_installments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garnishment_installments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "garnishment_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garnishment_installments_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garnishment_profiles: {
+        Row: {
+          amount_paid_so_far: number
+          balance_remaining: number | null
+          case_number: string
+          court_district: string
+          created_at: string
+          created_by: string | null
+          creditor: string
+          employee_id: string | null
+          employee_name: string
+          id: string
+          law_firm: string
+          notes: string | null
+          total_amount_owed: number
+          updated_at: string
+        }
+        Insert: {
+          amount_paid_so_far?: number
+          balance_remaining?: number | null
+          case_number: string
+          court_district: string
+          created_at?: string
+          created_by?: string | null
+          creditor: string
+          employee_id?: string | null
+          employee_name: string
+          id?: string
+          law_firm: string
+          notes?: string | null
+          total_amount_owed: number
+          updated_at?: string
+        }
+        Update: {
+          amount_paid_so_far?: number
+          balance_remaining?: number | null
+          case_number?: string
+          court_district?: string
+          created_at?: string
+          created_by?: string | null
+          creditor?: string
+          employee_id?: string | null
+          employee_name?: string
+          id?: string
+          law_firm?: string
+          notes?: string | null
+          total_amount_owed?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garnishment_profiles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garnishment_profiles_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      petty_cash_transactions: {
+        Row: {
+          amount: number
+          approved: boolean
+          created_at: string
+          created_by: string | null
+          date: string
+          employee_id: string | null
+          employee_name: string | null
+          id: string
+          notes: string | null
+          purpose: string | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved?: boolean
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          employee_id?: string | null
+          employee_name?: string | null
+          id?: string
+          notes?: string | null
+          purpose?: string | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved?: boolean
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          employee_id?: string | null
+          employee_name?: string | null
+          id?: string
+          notes?: string | null
+          purpose?: string | null
+          type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "petty_cash_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "petty_cash_transactions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["employee_role"]
+      }
+      user_has_permission: {
+        Args: {
+          permission_name: Database["public"]["Enums"]["employee_permission"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      employee_permission:
+        | "VIEW_FINANCES"
+        | "EDIT_TRANSACTIONS"
+        | "DELETE_RECORDS"
+        | "MANAGE_EMPLOYEES"
+        | "APPROVE_TRANSACTIONS"
+        | "APPROVE_LARGE_LOANS"
+      employee_role: "employee" | "manager" | "admin"
+      loan_status:
+        | "pending"
+        | "approved_manager"
+        | "approved_admin"
+        | "rejected"
+      transaction_type: "credit" | "debit"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +648,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      employee_permission: [
+        "VIEW_FINANCES",
+        "EDIT_TRANSACTIONS",
+        "DELETE_RECORDS",
+        "MANAGE_EMPLOYEES",
+        "APPROVE_TRANSACTIONS",
+        "APPROVE_LARGE_LOANS",
+      ],
+      employee_role: ["employee", "manager", "admin"],
+      loan_status: [
+        "pending",
+        "approved_manager",
+        "approved_admin",
+        "rejected",
+      ],
+      transaction_type: ["credit", "debit"],
+    },
   },
 } as const

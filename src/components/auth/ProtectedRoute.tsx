@@ -8,9 +8,9 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useSupabaseAuth();
+  const { user, loading, roleValidating } = useSupabaseAuth();
 
-  if (loading) {
+  if (loading || roleValidating) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

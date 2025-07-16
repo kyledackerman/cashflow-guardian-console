@@ -78,9 +78,6 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({ open, onOpenChange }) 
             </div>
           )}
           
-          <div className="text-xs text-muted-foreground">
-            Debug: Found {managers.length} manager(s): {managers.map(m => m.name).join(', ') || 'None'}
-          </div>
           
           <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
             <SelectTrigger>

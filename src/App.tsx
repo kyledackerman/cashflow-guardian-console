@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
+import { AuthErrorBoundary } from "./components/auth/AuthErrorBoundary";
 import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { AuthPage } from "./components/auth/AuthPage";
@@ -53,7 +54,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <SupabaseAuthProvider>
-        <AppContent />
+        <AuthErrorBoundary>
+          <AppContent />
+        </AuthErrorBoundary>
       </SupabaseAuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

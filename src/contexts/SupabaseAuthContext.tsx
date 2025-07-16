@@ -33,99 +33,110 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [roleValidating, setRoleValidating] = useState(false);
+  const [validationAbortController, setValidationAbortController] = useState<AbortController | null>(null);
   const { toast } = useToast();
+
+  // Helper function to validate user role with abort controller
+  const validateUserRole = async (userId: string, abortController: AbortController) => {
+    try {
+      const { data: canLogin, error: rpcError } = await supabase.rpc('can_user_login', {
+        user_id: userId
+      });
+
+      // Check if validation was aborted
+      if (abortController.signal.aborted) {
+        return null;
+      }
+
+      if (rpcError) {
+        console.error('RPC error:', rpcError);
+        throw rpcError;
+      }
+
+      return canLogin;
+    } catch (error) {
+      if (abortController.signal.aborted) {
+        return null;
+      }
+      throw error;
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        // Cancel any pending validation
+        if (validationAbortController) {
+          validationAbortController.abort();
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
         if (event === 'SIGNED_IN' && session?.user) {
-          // Validate role access with proper loading state
+          // Create new abort controller for this validation
+          const abortController = new AbortController();
+          setValidationAbortController(abortController);
           setRoleValidating(true);
-          setTimeout(async () => {
-            try {
-              const { data: canLogin, error: rpcError } = await supabase.rpc('can_user_login', {
-                user_id: session.user.id
-              });
 
-              if (rpcError) {
-                console.error('RPC error:', rpcError);
-                throw rpcError;
-              }
+          try {
+            const canLogin = await validateUserRole(session.user.id, abortController);
+            
+            // If validation was aborted, don't proceed
+            if (canLogin === null) return;
 
-              if (!canLogin) {
-                await supabase.auth.signOut();
-                toast({
-                  title: "Access Restricted",
-                  description: "Employee accounts cannot log in. Please contact management for access.",
-                  variant: "destructive"
-                });
-                return;
-              }
-
-              toast({
-                title: "Welcome back!",
-                description: "You have been successfully signed in."
-              });
-            } catch (error) {
-              console.error('Error checking user permissions:', error);
+            if (!canLogin) {
               await supabase.auth.signOut();
               toast({
-                title: "Access Error",
-                description: "Unable to verify account permissions. Please try again.",
+                title: "Access Restricted",
+                description: "Employee accounts cannot log in. Please contact management for access.",
                 variant: "destructive"
               });
-            } finally {
-              setRoleValidating(false);
+              return;
             }
-          }, 0);
+
+            toast({
+              title: "Welcome back!",
+              description: "You have been successfully signed in."
+            });
+          } catch (error) {
+            console.error('Error checking user permissions:', error);
+            await supabase.auth.signOut();
+            toast({
+              title: "Access Error",
+              description: "Unable to verify account permissions. Please try again.",
+              variant: "destructive"
+            });
+          } finally {
+            if (!abortController.signal.aborted) {
+              setRoleValidating(false);
+              setValidationAbortController(null);
+            }
+          }
         } else {
           setRoleValidating(false);
+          setValidationAbortController(null);
         }
       }
     );
 
-    // Check for existing session with role validation
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // Check for existing session - simplified to avoid duplicate validation
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-
-      // Validate existing session role access
-      if (session?.user) {
-        setRoleValidating(true);
-        try {
-          const { data: canLogin, error: rpcError } = await supabase.rpc('can_user_login', {
-            user_id: session.user.id
-          });
-
-          if (rpcError) {
-            console.error('Session validation RPC error:', rpcError);
-            throw rpcError;
-          }
-
-          if (!canLogin) {
-            await supabase.auth.signOut();
-            toast({
-              title: "Session Invalid",
-              description: "Your account does not have access permissions.",
-              variant: "destructive"
-            });
-          }
-        } catch (error) {
-          console.error('Error validating existing session:', error);
-          await supabase.auth.signOut();
-        } finally {
-          setRoleValidating(false);
-        }
-      }
+      // Role validation will be handled by onAuthStateChange if user is signed in
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      // Cleanup any pending validation
+      if (validationAbortController) {
+        validationAbortController.abort();
+      }
+    };
   }, [toast]);
 
   const signUp = async (email: string, password: string, name: string, role: string = 'employee') => {

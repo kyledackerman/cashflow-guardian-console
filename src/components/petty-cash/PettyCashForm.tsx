@@ -44,6 +44,15 @@ const formSchema = z.object({
   purpose: z.string().optional(),
   notes: z.string().optional(),
   approved: z.boolean().default(false),
+}).refine((data) => {
+  // Purpose is required for debit transactions
+  if (data.type === 'debit' && (!data.purpose || data.purpose.trim() === '')) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Purpose is required for debit transactions",
+  path: ["purpose"],
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -64,6 +73,8 @@ export function PettyCashForm() {
       approved: false,
     },
   });
+
+  const watchedType = form.watch('type');
 
   const onSubmit = (data: FormData) => {
     addPettyCashTransaction({
@@ -182,31 +193,33 @@ export function PettyCashForm() {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="employee"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Employee (Optional)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select employee" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.name}>
-                        {employee.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {watchedType === 'debit' && (
+            <FormField
+              control={form.control}
+              name="employee"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Employee (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select employee" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {employees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.name}>
+                          {employee.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         <FormField
@@ -214,7 +227,7 @@ export function PettyCashForm() {
           name="purpose"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Purpose (Optional)</FormLabel>
+              <FormLabel>Purpose {watchedType === 'debit' ? '(Required)' : '(Optional)'}</FormLabel>
               <FormControl>
                 <Textarea placeholder="Description of transaction" {...field} />
               </FormControl>

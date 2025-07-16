@@ -1,72 +1,100 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Upload, File, Download } from 'lucide-react';
-import { GarnishmentDocument } from '@/types/ui';
+import { Trash2, Upload, File, Download, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useGarnishmentDocuments } from '@/hooks/useGarnishmentDocuments';
+import { Database } from '@/integrations/supabase/types';
+
+type GarnishmentDocument = Database['public']['Tables']['garnishment_documents']['Row'];
 
 interface DocumentUploadProps {
-  documents: GarnishmentDocument[];
-  onDocumentsChange: (documents: GarnishmentDocument[]) => void;
-  maxFileSize?: number; // in MB
+  profileId?: string;
+  installmentId?: string;
+  maxFileSize?: number;
 }
 
 export function DocumentUpload({ 
-  documents, 
-  onDocumentsChange, 
-  maxFileSize = 5 
+  profileId, 
+  installmentId, 
+  maxFileSize = 10 * 1024 * 1024 // 10MB default
 }: DocumentUploadProps) {
   const [dragOver, setDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  
+  const {
+    documents,
+    loading,
+    fetchDocuments,
+    uploadDocument,
+    deleteDocument,
+    downloadDocument,
+  } = useGarnishmentDocuments();
 
-  const handleFileUpload = useCallback((files: FileList | null) => {
+  // Fetch documents when component mounts or IDs change
+  useEffect(() => {
+    if (profileId || installmentId) {
+      fetchDocuments(profileId, installmentId);
+    }
+  }, [profileId, installmentId, fetchDocuments]);
+
+  const handleFileUpload = useCallback(async (files: FileList | null) => {
     if (!files) return;
 
-    Array.from(files).forEach(file => {
+    const validFiles = Array.from(files).filter(file => {
       // Validate file type
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      const allowedTypes = [
+        'application/pdf',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
       if (!allowedTypes.includes(file.type)) {
         toast({
           title: "Invalid file type",
-          description: `${file.name} is not a supported file type. Please upload PDF or image files.`,
-          variant: "destructive"
+          description: `${file.name} is not a supported file type`,
+          variant: "destructive",
         });
-        return;
+        return false;
       }
 
       // Validate file size
-      if (file.size > maxFileSize * 1024 * 1024) {
+      if (file.size > maxFileSize) {
         toast({
           title: "File too large",
-          description: `${file.name} is larger than ${maxFileSize}MB. Please choose a smaller file.`,
-          variant: "destructive"
+          description: `${file.name} exceeds the maximum size of ${formatFileSize(maxFileSize)}`,
+          variant: "destructive",
         });
-        return;
+        return false;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64Data = e.target?.result as string;
-        const newDocument: GarnishmentDocument = {
-          id: crypto.randomUUID(),
-          fileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-          base64Data,
-          uploadDate: new Date(),
-        };
-
-        onDocumentsChange([...documents, newDocument]);
-        toast({
-          title: "File uploaded",
-          description: `${file.name} has been uploaded successfully.`
-        });
-      };
-      reader.readAsDataURL(file);
+      return true;
     });
-  }, [documents, onDocumentsChange, maxFileSize]);
+
+    if (validFiles.length === 0) return;
+
+    setUploading(true);
+    
+    try {
+      for (const file of validFiles) {
+        await uploadDocument(file, profileId, installmentId);
+      }
+      
+      // Refresh documents after upload
+      if (profileId || installmentId) {
+        await fetchDocuments(profileId, installmentId);
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+    } finally {
+      setUploading(false);
+    }
+  }, [profileId, installmentId, maxFileSize, uploadDocument, fetchDocuments]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -76,27 +104,21 @@ export function DocumentUpload({
 
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileUpload(e.target.files);
+    e.target.value = ''; // Reset input
   }, [handleFileUpload]);
 
-  const removeDocument = useCallback((documentId: string) => {
-    onDocumentsChange(documents.filter(doc => doc.id !== documentId));
-    toast({
-      title: "Document removed",
-      description: "The document has been removed successfully."
-    });
-  }, [documents, onDocumentsChange]);
+  const handleDeleteDocument = async (documentId: string) => {
+    await deleteDocument(documentId);
+  };
 
-  const downloadDocument = useCallback((document: GarnishmentDocument) => {
-    const link = window.document.createElement('a');
-    link.href = document.base64Data;
-    link.download = document.fileName;
-    link.click();
-  }, []);
+  const handleDownloadDocument = async (document: GarnishmentDocument) => {
+    await downloadDocument(document);
+  };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB'];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
@@ -104,78 +126,104 @@ export function DocumentUpload({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium">Documents</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <File className="h-5 w-5" />
+          Document Management
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Upload Area */}
         <div
-          className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-            dragOver 
-              ? 'border-primary bg-primary/5' 
-              : 'border-muted-foreground/25 hover:border-primary/50'
-          }`}
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            dragOver
+              ? 'border-primary bg-primary/5'
+              : 'border-border hover:border-primary/50'
+          } ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
           onDrop={handleDrop}
           onDragOver={(e) => {
             e.preventDefault();
             setDragOver(true);
           }}
-          onDragLeave={() => setDragOver(false)}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            setDragOver(false);
+          }}
         >
-          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground mb-2">
-            Drag and drop files here, or click to select
-          </p>
-          <Label htmlFor="file-upload" className="cursor-pointer">
-            <Button variant="outline" size="sm" asChild>
-              <span>Choose Files</span>
-            </Button>
-          </Label>
           <Input
-            id="file-upload"
             type="file"
             multiple
-            accept=".pdf,.jpg,.jpeg,.png,.gif"
+            accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx"
             onChange={handleFileInputChange}
             className="hidden"
+            id="file-upload"
+            disabled={uploading}
           />
-          <p className="text-xs text-muted-foreground mt-2">
-            PDF, JPG, PNG, GIF up to {maxFileSize}MB each
-          </p>
+          <label
+            htmlFor="file-upload"
+            className="cursor-pointer flex flex-col items-center gap-2"
+          >
+            {uploading ? (
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            ) : (
+              <Upload className="h-8 w-8 text-muted-foreground" />
+            )}
+            <div>
+              <p className="text-sm font-medium">
+                {uploading ? 'Uploading...' : 'Drop files here or click to browse'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                PDF, Images, Word documents up to {formatFileSize(maxFileSize)}
+              </p>
+            </div>
+          </label>
         </div>
 
-        {/* Document List */}
-        {documents.length > 0 && (
+        {/* Documents List */}
+        {loading ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        ) : documents.length > 0 ? (
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Uploaded Documents</Label>
-            {documents.map((doc) => (
+            <h4 className="text-sm font-medium">Uploaded Documents ({documents.length})</h4>
+            {documents.map((document) => (
               <div
-                key={doc.id}
-                className="flex items-center justify-between p-3 border rounded-lg"
+                key={document.id}
+                className="flex items-center justify-between p-3 border rounded-lg bg-card"
               >
-                <div className="flex items-center space-x-3">
-                  <File className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{doc.fileName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(doc.fileSize)} • {new Date(doc.uploadDate).toLocaleDateString()}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {document.file_name}
                     </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="secondary" className="text-xs">
+                        {document.file_type}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {formatFileSize(document.file_size)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(document.uploaded_at).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {doc.fileType.split('/')[1].toUpperCase()}
-                  </Badge>
                 </div>
-                <div className="flex space-x-1">
+                <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => downloadDocument(doc)}
+                    onClick={() => handleDownloadDocument(document)}
+                    className="h-8 w-8 p-0"
                   >
                     <Download className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeDocument(doc.id)}
+                    onClick={() => handleDeleteDocument(document.id)}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -183,6 +231,10 @@ export function DocumentUpload({
               </div>
             ))}
           </div>
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            No documents uploaded yet
+          </p>
         )}
       </CardContent>
     </Card>

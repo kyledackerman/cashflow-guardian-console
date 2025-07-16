@@ -4,8 +4,9 @@ export interface GarnishmentDocument {
   fileName: string;
   fileType: string;
   fileSize: number;
-  base64Data: string;
+  storagePath: string;
   uploadDate: Date;
+  description?: string;
 }
 
 export interface Employee {

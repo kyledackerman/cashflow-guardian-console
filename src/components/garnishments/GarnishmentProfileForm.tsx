@@ -11,7 +11,6 @@ import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
 import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from '@/hooks/use-toast';
 import { DocumentUpload } from './DocumentUpload';
-import { GarnishmentDocument } from '@/types/ui';
 
 const formSchema = z.object({
   employee: z.string().min(1, 'Employee is required'),
@@ -19,7 +18,7 @@ const formSchema = z.object({
   courtDistrict: z.string().min(1, 'Court district is required'),
   caseNumber: z.string().min(1, 'Case number is required'),
   lawFirm: z.string().min(1, 'Law firm/collection company is required'),
-  totalAmountOwed: z.number().min(0.01, 'Amount must be greater than 0'),
+  totalAmountOwed: z.string().min(1, 'Amount is required'),
   notes: z.string().optional(),
 });
 
@@ -28,8 +27,8 @@ type FormData = z.infer<typeof formSchema>;
 export function GarnishmentProfileForm() {
   const { employees } = useEmployees();
   const { addProfile } = useGarnishmentProfiles();
-  const [documents, setDocuments] = useState<GarnishmentDocument[]>([]);
-  
+  const [createdProfileId, setCreatedProfileId] = useState<string | null>(null);
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,31 +37,45 @@ export function GarnishmentProfileForm() {
       courtDistrict: '',
       caseNumber: '',
       lawFirm: '',
-      totalAmountOwed: 0,
+      totalAmountOwed: '',
       notes: '',
     },
   });
 
   const onSubmit = async (data: FormData) => {
-    const { error } = await addProfile({
-      employee_name: data.employee,
-      creditor: data.creditor,
-      court_district: data.courtDistrict,
-      case_number: data.caseNumber,
-      law_firm: data.lawFirm,
-      total_amount_owed: data.totalAmountOwed,
-      notes: data.notes || null,
-      // Note: Document handling will need to be updated for Supabase Storage
-    });
-    
-    if (!error) {
-      toast({
-        title: "Garnishment Profile Created",
-        description: `Profile for ${data.employee} has been created successfully.`,
+    try {
+      const employee = employees.find(emp => emp.id === data.employee);
+      if (!employee) {
+        throw new Error('Employee not found');
+      }
+
+      const profile = await addProfile({
+        employee_id: data.employee,
+        employee_name: employee.name,
+        creditor: data.creditor,
+        court_district: data.courtDistrict,
+        case_number: data.caseNumber,
+        law_firm: data.lawFirm,
+        total_amount_owed: parseFloat(data.totalAmountOwed),
+        notes: data.notes || null,
       });
 
+      if (profile.data) {
+        setCreatedProfileId(profile.data.id);
+        toast({
+          title: "Success",
+          description: "Garnishment profile created successfully. You can now upload documents.",
+        });
+      }
+
       form.reset();
-      setDocuments([]);
+    } catch (error) {
+      console.error('Error creating garnishment profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create garnishment profile",
+        variant: "destructive",
+      });
     }
   };
 
@@ -84,7 +97,7 @@ export function GarnishmentProfileForm() {
                   </FormControl>
                   <SelectContent>
                     {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.name}>
+                      <SelectItem key={employee.id} value={employee.id}>
                         {employee.name}
                       </SelectItem>
                     ))}
@@ -163,7 +176,6 @@ export function GarnishmentProfileForm() {
                     step="0.01"
                     placeholder="0.00"
                     {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -189,10 +201,17 @@ export function GarnishmentProfileForm() {
           )}
         />
 
-        <DocumentUpload
-          documents={documents}
-          onDocumentsChange={setDocuments}
-        />
+        {/* Document Upload */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Supporting Documents</label>
+          {createdProfileId ? (
+            <DocumentUpload profileId={createdProfileId} />
+          ) : (
+            <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg text-center">
+              Create the profile first to upload documents
+            </div>
+          )}
+        </div>
 
         <Button type="submit" className="w-full">
           Create Garnishment Profile

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -33,6 +34,7 @@ import {
 } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import { DocumentUpload } from './DocumentUpload';
 
 const formSchema = z.object({
   profileId: z.string().min(1, 'Garnishment profile is required'),
@@ -53,6 +55,7 @@ export function GarnishmentInstallmentForm() {
   const { employees } = useEmployees();
   const { toast } = useToast();
   const { user } = useSupabaseAuth();
+  const [createdInstallmentId, setCreatedInstallmentId] = useState<string | null>(null);
 
   // Only managers and admins can access this form
   const managersAndAdmins = employees.filter(emp => 
@@ -100,7 +103,7 @@ export function GarnishmentInstallmentForm() {
 
     const installmentNumber = getNextInstallmentNumber(data.profileId);
 
-    const { error } = await addInstallment({
+    const result = await addInstallment({
       profile_id: data.profileId,
       employee_name: selectedProfile.employee_name,
       payroll_date: data.payrollDate.toISOString().split('T')[0],
@@ -111,10 +114,11 @@ export function GarnishmentInstallmentForm() {
       notes: data.notes || null,
     });
 
-    if (!error) {
+    if (!result.error && result.data) {
+      setCreatedInstallmentId(result.data.id);
       toast({
         title: 'Installment Added',
-        description: `Payment #${installmentNumber} of $${data.amount.toFixed(2)} recorded for ${selectedProfile.employee_name}.`,
+        description: `Payment #${installmentNumber} of $${data.amount.toFixed(2)} recorded for ${selectedProfile.employee_name}. You can now upload documents.`,
       });
     }
 
@@ -320,6 +324,18 @@ export function GarnishmentInstallmentForm() {
             </FormItem>
           )}
         />
+
+        {/* Document Upload */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Supporting Documents</label>
+          {createdInstallmentId ? (
+            <DocumentUpload installmentId={createdInstallmentId} />
+          ) : (
+            <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg text-center">
+              Create the installment first to upload documents
+            </div>
+          )}
+        </div>
 
         <Button 
           type="submit" 

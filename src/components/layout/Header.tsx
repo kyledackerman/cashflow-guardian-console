@@ -10,12 +10,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
-import { DollarSign, Download, Upload, Database } from 'lucide-react';
+import { DollarSign, Download, Upload, Database, User, LogOut } from 'lucide-react';
 import { useRef } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
   const { pettyCashBalance } = useFinanceStore();
   const { downloadBackup, restoreFromBackup, getLastBackupTime } = useBackupManager();
+  const { currentUser, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatCurrency = (amount: number) => {
@@ -87,6 +89,21 @@ export function Header() {
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
+          
+          {currentUser && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span className="text-sm font-medium">{currentUser.name}</span>
+                <Badge variant={currentUser.role === 'manager' ? "default" : "outline"}>
+                  {currentUser.role}
+                </Badge>
+              </div>
+              <Button variant="ghost" size="sm" onClick={logout}>
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           
           <input
             ref={fileInputRef}

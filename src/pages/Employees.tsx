@@ -8,17 +8,22 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Search, Users } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Edit, Search, Users, UserCheck, UserX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Employee } from '@/types/finance';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions, ROLE_PERMISSIONS } from '@/hooks/usePermissions';
 
 export default function Employees() {
   const { employees, addEmployee, updateEmployee, employeeLoanWithdrawals, employeeLoanRepayments, garnishmentProfiles } = useFinanceStore();
+  const { currentUser } = useAuth();
+  const permissions = usePermissions(currentUser?.permissions || []);
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [formData, setFormData] = useState({ name: '', active: true });
+  const [formData, setFormData] = useState({ name: '', active: true, role: 'employee' as 'employee' | 'manager' });
 
   const filteredEmployees = employees.filter(employee =>
     employee.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -46,22 +51,27 @@ export default function Employees() {
       return;
     }
 
+    const employeeData = {
+      ...formData,
+      permissions: [...ROLE_PERMISSIONS[formData.role]],
+    };
+
     if (editingEmployee) {
-      updateEmployee(editingEmployee.id, formData);
+      updateEmployee(editingEmployee.id, employeeData);
       toast({ title: "Success", description: "Employee updated successfully" });
       setEditingEmployee(null);
     } else {
-      addEmployee(formData);
+      addEmployee(employeeData);
       toast({ title: "Success", description: "Employee added successfully" });
     }
 
-    setFormData({ name: '', active: true });
+    setFormData({ name: '', active: true, role: 'employee' });
     setIsAddDialogOpen(false);
   };
 
   const handleEdit = (employee: Employee) => {
     setEditingEmployee(employee);
-    setFormData({ name: employee.name, active: employee.active });
+    setFormData({ name: employee.name, active: employee.active, role: employee.role || 'employee' });
     setIsAddDialogOpen(true);
   };
 
@@ -74,7 +84,7 @@ export default function Employees() {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', active: true });
+    setFormData({ name: '', active: true, role: 'employee' });
     setEditingEmployee(null);
   };
 
@@ -85,16 +95,17 @@ export default function Employees() {
           <h1 className="text-2xl font-bold text-foreground">Employee Management</h1>
           <p className="text-muted-foreground">Manage employee records and view financial summaries</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-          setIsAddDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Employee
-            </Button>
-          </DialogTrigger>
+        {permissions.canManageEmployees() && (
+          <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+            setIsAddDialogOpen(open);
+            if (!open) resetForm();
+          }}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Employee
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{editingEmployee ? 'Edit Employee' : 'Add New Employee'}</DialogTitle>
@@ -109,14 +120,29 @@ export default function Employees() {
                   placeholder="Enter employee name"
                 />
               </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="active"
-                  checked={formData.active}
-                  onCheckedChange={(active) => setFormData({ ...formData, active })}
-                />
-                <Label htmlFor="active">Active Employee</Label>
-              </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="active"
+                    checked={formData.active}
+                    onCheckedChange={(active) => setFormData({ ...formData, active })}
+                  />
+                  <Label htmlFor="active">Active Employee</Label>
+                </div>
+                <div>
+                  <Label htmlFor="role">Role</Label>
+                  <Select
+                    value={formData.role}
+                    onValueChange={(value: 'employee' | 'manager') => setFormData({ ...formData, role: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="employee">Employee</SelectItem>
+                      <SelectItem value="manager">Manager</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
@@ -126,8 +152,9 @@ export default function Employees() {
                 </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Card>
@@ -152,22 +179,28 @@ export default function Employees() {
           </div>
 
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Loan Balance</TableHead>
-                <TableHead>Active Garnishments</TableHead>
-                <TableHead>Garnishment Balance</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Loan Balance</TableHead>
+                  <TableHead>Active Garnishments</TableHead>
+                  <TableHead>Garnishment Balance</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {filteredEmployees.map((employee) => {
                 const stats = getEmployeeStats(employee.id);
                 return (
                   <TableRow key={employee.id}>
                     <TableCell className="font-medium">{employee.name}</TableCell>
+                    <TableCell>
+                      <Badge variant={employee.role === 'manager' ? "default" : "outline"}>
+                        {employee.role === 'manager' ? 'Manager' : 'Employee'}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <Badge variant={employee.active ? "default" : "secondary"}>
                         {employee.active ? 'Active' : 'Inactive'}
@@ -199,18 +232,29 @@ export default function Employees() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(employee)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Switch
-                          checked={employee.active}
-                          onCheckedChange={() => handleToggleStatus(employee)}
-                        />
+                      <div className="flex gap-2">
+                        {permissions.canManageEmployees() && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(employee)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleStatus(employee)}
+                            >
+                              {employee.active ? (
+                                <UserX className="h-4 w-4" />
+                              ) : (
+                                <UserCheck className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

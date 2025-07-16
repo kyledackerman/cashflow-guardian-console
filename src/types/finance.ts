@@ -58,4 +58,13 @@ export interface Employee {
   id: string;
   name: string;
   active: boolean;
+  role: 'employee' | 'manager';
+  permissions: Permission[];
 }
+
+export type Permission = 
+  | 'VIEW_FINANCES' 
+  | 'EDIT_TRANSACTIONS' 
+  | 'DELETE_RECORDS' 
+  | 'MANAGE_EMPLOYEES' 
+  | 'APPROVE_TRANSACTIONS';

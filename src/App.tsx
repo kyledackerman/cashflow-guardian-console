@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { LoginDialog } from "./components/auth/LoginDialog";
 import Index from "./pages/Index";
 import PettyCash from "./pages/PettyCash";
 import Employees from "./pages/Employees";
@@ -13,11 +15,12 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+const AppContent = () => {
+  const { isAuthenticated } = useAuth();
+  
+  return (
+    <>
+      <LoginDialog open={!isAuthenticated} />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
@@ -31,6 +34,18 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+    </>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

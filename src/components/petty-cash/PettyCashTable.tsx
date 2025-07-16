@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { useFinanceStore } from '@/hooks/useFinanceStore';
-import { PettyCashTransaction } from '@/types/finance';
+import { usePettyCashTransactions } from '@/hooks/usePettyCashTransactions';
+import type { Tables } from '@/integrations/supabase/types';
+
+type PettyCashTransaction = Tables<'petty_cash_transactions'>;
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +32,7 @@ import { CalendarIcon, Filter, CheckCircle, XCircle, Clock, ChevronDown, Chevron
 import { cn } from '@/lib/utils';
 
 export function PettyCashTable() {
-  const { pettyCashTransactions, updatePettyCashTransaction, deletePettyCashTransaction } = useFinanceStore();
+  const { transactions, updateTransaction, deleteTransaction } = usePettyCashTransactions();
   const [filters, setFilters] = useState({
     type: 'all',
     employee: 'all',
@@ -48,23 +50,23 @@ export function PettyCashTable() {
   };
 
   const filteredTransactions = useMemo(() => {
-    return pettyCashTransactions.filter((transaction) => {
+    return transactions.filter((transaction) => {
       if (filters.type !== 'all' && transaction.type !== filters.type) return false;
-      if (filters.employee !== 'all' && transaction.employee !== filters.employee) return false;
+      if (filters.employee !== 'all' && transaction.employee_name !== filters.employee) return false;
       if (filters.approved === 'approved' && !transaction.approved) return false;
       if (filters.approved === 'pending' && transaction.approved) return false;
-      if (filters.dateFrom && transaction.date < filters.dateFrom) return false;
-      if (filters.dateTo && transaction.date > filters.dateTo) return false;
+      if (filters.dateFrom && new Date(transaction.date) < filters.dateFrom) return false;
+      if (filters.dateTo && new Date(transaction.date) > filters.dateTo) return false;
       return true;
     });
-  }, [pettyCashTransactions, filters]);
+  }, [transactions, filters]);
 
   const uniqueEmployees = Array.from(
-    new Set(pettyCashTransactions.map(t => t.employee).filter(Boolean))
+    new Set(transactions.map(t => t.employee_name).filter(Boolean))
   );
 
   const toggleApproval = (transaction: PettyCashTransaction) => {
-    updatePettyCashTransaction(transaction.id, { approved: !transaction.approved });
+    updateTransaction(transaction.id, { approved: !transaction.approved });
   };
 
   const toggleRowExpansion = (transactionId: string) => {
@@ -230,7 +232,7 @@ export function PettyCashTable() {
                       <TableCell className={transaction.type === 'credit' ? 'text-success' : 'text-destructive'}>
                         {formatCurrency(transaction.amount)}
                       </TableCell>
-                      <TableCell>{transaction.employee || '-'}</TableCell>
+                      <TableCell>{transaction.employee_name || '-'}</TableCell>
                       <TableCell>
                         <div className="max-w-[200px] truncate">
                           {transaction.purpose || '-'}
@@ -258,13 +260,13 @@ export function PettyCashTable() {
                           >
                             {transaction.approved ? 'Unapprove' : 'Approve'}
                           </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => deletePettyCashTransaction(transaction.id)}
-                          >
-                            Delete
-                          </Button>
+                           <Button
+                             variant="destructive"
+                             size="sm"
+                             onClick={() => deleteTransaction(transaction.id)}
+                           >
+                             Delete
+                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>

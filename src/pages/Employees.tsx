@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useEmployeeLoanWithdrawals } from '@/hooks/useEmployeeLoanWithdrawals';
+import { useEmployeeLoanRepayments } from '@/hooks/useEmployeeLoanRepayments';
+import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +19,10 @@ import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { ROLE_PERMISSIONS } from '@/hooks/usePermissions';
 
 export default function Employees() {
-  const { employees, addEmployee, updateEmployee, employeeLoanWithdrawals, employeeLoanRepayments, garnishmentProfiles } = useFinanceStore();
+  const { employees, addEmployee, updateEmployee } = useEmployees();
+  const { withdrawals } = useEmployeeLoanWithdrawals();
+  const { repayments } = useEmployeeLoanRepayments();
+  const { profiles } = useGarnishmentProfiles();
   const { user } = useSupabaseAuth();
   const { toast } = useToast();
   
@@ -34,19 +40,19 @@ export default function Employees() {
     employee.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getEmployeeStats = (employeeId: string) => {
-    const withdrawals = employeeLoanWithdrawals.filter(w => w.employee === employeeId);
-    const repayments = employeeLoanRepayments.filter(r => r.employee === employeeId);
-    const garnishments = garnishmentProfiles.filter(g => g.employee === employeeId);
+  const getEmployeeStats = (employeeName: string) => {
+    const employeeWithdrawals = withdrawals.filter(w => w.employee_name === employeeName);
+    const employeeRepayments = repayments.filter(r => r.employee_name === employeeName);
+    const employeeGarnishments = profiles.filter(g => g.employee_name === employeeName);
     
-    const totalWithdrawn = withdrawals.reduce((sum, w) => sum + w.amount, 0);
-    const totalRepaid = repayments.reduce((sum, r) => sum + r.amount, 0);
-    const activeGarnishments = garnishments.filter(g => g.balanceRemaining > 0).length;
+    const totalWithdrawn = employeeWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
+    const totalRepaid = employeeRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
+    const activeGarnishments = employeeGarnishments.filter(g => Number(g.balance_remaining || 0) > 0).length;
     
     return {
       loanBalance: totalWithdrawn - totalRepaid,
       activeGarnishments,
-      totalGarnishmentBalance: garnishments.reduce((sum, g) => sum + g.balanceRemaining, 0)
+      totalGarnishmentBalance: employeeGarnishments.reduce((sum, g) => sum + Number(g.balance_remaining || 0), 0)
     };
   };
 
@@ -208,7 +214,7 @@ export default function Employees() {
               </TableHeader>
             <TableBody>
               {filteredEmployees.map((employee) => {
-                const stats = getEmployeeStats(employee.id);
+                const stats = getEmployeeStats(employee.name);
                 return (
                   <TableRow key={employee.id}>
                     <TableCell className="font-medium">{employee.name}</TableCell>

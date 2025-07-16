@@ -151,9 +151,12 @@ export const usePettyCashTransactions = () => {
     };
   }, []);
 
+  const balance = calculateBalance();
+
   return {
     transactions,
     loading,
+    balance,
     addTransaction,
     updateTransaction,
     deleteTransaction,

@@ -3,7 +3,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { useEmployeeLoanRepayments } from '@/hooks/useEmployeeLoanRepayments';
+import { useEmployeeLoanWithdrawals } from '@/hooks/useEmployeeLoanWithdrawals';
+import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,7 +45,9 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function LoanRepaymentForm() {
-  const { addEmployeeLoanRepayment, employees, employeeLoanWithdrawals, employeeLoanRepayments } = useFinanceStore();
+  const { addRepayment, repayments } = useEmployeeLoanRepayments();
+  const { withdrawals } = useEmployeeLoanWithdrawals();
+  const { employees } = useEmployees();
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -58,11 +62,11 @@ export function LoanRepaymentForm() {
 
   // Get employees with outstanding loans
   const employeesWithLoans = employees.filter(employee => {
-    const withdrawals = employeeLoanWithdrawals.filter(w => w.employee === employee.name);
-    const repayments = employeeLoanRepayments.filter(r => r.employee === employee.name);
+    const employeeWithdrawals = withdrawals.filter(w => w.employee_name === employee.name);
+    const employeeRepayments = repayments.filter(r => r.employee_name === employee.name);
     
-    const totalWithdrawn = withdrawals.reduce((sum, w) => sum + w.amount, 0);
-    const totalRepaid = repayments.reduce((sum, r) => sum + r.amount, 0);
+    const totalWithdrawn = employeeWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
+    const totalRepaid = employeeRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
     const outstandingBalance = totalWithdrawn - totalRepaid;
 
     return outstandingBalance > 0;
@@ -70,18 +74,18 @@ export function LoanRepaymentForm() {
 
   const selectedEmployee = form.watch('employee');
   const getOutstandingBalance = (employeeName: string) => {
-    const withdrawals = employeeLoanWithdrawals.filter(w => w.employee === employeeName);
-    const repayments = employeeLoanRepayments.filter(r => r.employee === employeeName);
+    const employeeWithdrawals = withdrawals.filter(w => w.employee_name === employeeName);
+    const employeeRepayments = repayments.filter(r => r.employee_name === employeeName);
     
-    const totalWithdrawn = withdrawals.reduce((sum, w) => sum + w.amount, 0);
-    const totalRepaid = repayments.reduce((sum, r) => sum + r.amount, 0);
+    const totalWithdrawn = employeeWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
+    const totalRepaid = employeeRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
     
     return totalWithdrawn - totalRepaid;
   };
 
   const outstandingBalance = selectedEmployee ? getOutstandingBalance(selectedEmployee) : 0;
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     // Validate repayment doesn't exceed outstanding balance
     if (data.amount > outstandingBalance) {
       toast({
@@ -92,17 +96,19 @@ export function LoanRepaymentForm() {
       return;
     }
 
-    addEmployeeLoanRepayment({
-      employee: data.employee,
-      payrollDate: data.payrollDate,
+    const { error } = await addRepayment({
+      employee_name: data.employee,
+      payroll_date: data.payrollDate.toISOString().split('T')[0],
       amount: data.amount,
-      notes: data.notes || undefined,
+      notes: data.notes || null,
     });
 
-    toast({
-      title: 'Repayment Recorded',
-      description: `$${data.amount.toFixed(2)} repayment recorded for ${data.employee}.`,
-    });
+    if (!error) {
+      toast({
+        title: 'Repayment Recorded',
+        description: `$${data.amount.toFixed(2)} repayment recorded for ${data.employee}.`,
+      });
+    }
 
     form.reset({
       employee: '',

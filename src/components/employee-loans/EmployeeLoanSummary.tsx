@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { useEmployeeLoanWithdrawals } from '@/hooks/useEmployeeLoanWithdrawals';
+import { useEmployeeLoanRepayments } from '@/hooks/useEmployeeLoanRepayments';
+import { useEmployees } from '@/hooks/useEmployees';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -20,7 +22,9 @@ import {
 import { format } from 'date-fns';
 
 export function EmployeeLoanSummary() {
-  const { employees, employeeLoanWithdrawals, employeeLoanRepayments } = useFinanceStore();
+  const { employees } = useEmployees();
+  const { withdrawals } = useEmployeeLoanWithdrawals();
+  const { repayments } = useEmployeeLoanRepayments();
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
 
   const formatCurrency = (amount: number) => {
@@ -32,11 +36,11 @@ export function EmployeeLoanSummary() {
 
   const getEmployeeLoanData = () => {
     return employees.map(employee => {
-      const withdrawals = employeeLoanWithdrawals.filter(w => w.employee === employee.name);
-      const repayments = employeeLoanRepayments.filter(r => r.employee === employee.name);
+      const employeeWithdrawals = withdrawals.filter(w => w.employee_name === employee.name);
+      const employeeRepayments = repayments.filter(r => r.employee_name === employee.name);
       
-      const totalWithdrawn = withdrawals.reduce((sum, w) => sum + w.amount, 0);
-      const totalRepaid = repayments.reduce((sum, r) => sum + r.amount, 0);
+      const totalWithdrawn = employeeWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
+      const totalRepaid = employeeRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
       const outstandingBalance = totalWithdrawn - totalRepaid;
 
       return {
@@ -44,8 +48,8 @@ export function EmployeeLoanSummary() {
         totalWithdrawn,
         totalRepaid,
         outstandingBalance,
-        withdrawals,
-        repayments,
+        withdrawals: employeeWithdrawals,
+        repayments: employeeRepayments,
       };
     }).filter(data => data.totalWithdrawn > 0 || data.totalRepaid > 0);
   };
@@ -54,15 +58,15 @@ export function EmployeeLoanSummary() {
   const selectedEmployeeData = employeeLoanData.find(data => data.employee === selectedEmployee);
 
   const getAllTransactions = (employeeName: string) => {
-    const withdrawals = employeeLoanWithdrawals
-      .filter(w => w.employee === employeeName)
+    const employeeWithdrawals = withdrawals
+      .filter(w => w.employee_name === employeeName)
       .map(w => ({ ...w, type: 'withdrawal' as const }));
     
-    const repayments = employeeLoanRepayments
-      .filter(r => r.employee === employeeName)
-      .map(r => ({ ...r, type: 'repayment' as const, date: r.payrollDate }));
+    const employeeRepayments = repayments
+      .filter(r => r.employee_name === employeeName)
+      .map(r => ({ ...r, type: 'repayment' as const, date: r.payroll_date }));
 
-    return [...withdrawals, ...repayments].sort((a, b) => 
+    return [...employeeWithdrawals, ...employeeRepayments].sort((a, b) => 
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   };
@@ -188,8 +192,8 @@ export function EmployeeLoanSummary() {
                         </TableCell>
                         <TableCell>{transaction.notes || '-'}</TableCell>
                         <TableCell>
-                          {transaction.type === 'withdrawal' && 'dueDate' in transaction
-                            ? format(new Date(transaction.dueDate), 'MM/dd/yyyy')
+                          {transaction.type === 'withdrawal' && 'due_date' in transaction
+                            ? format(new Date(transaction.due_date), 'MM/dd/yyyy')
                             : '-'
                           }
                         </TableCell>

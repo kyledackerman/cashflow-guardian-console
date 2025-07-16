@@ -1,4 +1,7 @@
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { usePettyCashTransactions } from '@/hooks/usePettyCashTransactions';
+import { useEmployeeLoanWithdrawals } from '@/hooks/useEmployeeLoanWithdrawals';
+import { useEmployeeLoanRepayments } from '@/hooks/useEmployeeLoanRepayments';
+import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DollarSign, Users, Receipt, TrendingUp, FileText } from 'lucide-react';
@@ -6,13 +9,10 @@ import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { 
-    pettyCashBalance, 
-    pettyCashTransactions,
-    employeeLoanWithdrawals,
-    employeeLoanRepayments,
-    garnishmentProfiles 
-  } = useFinanceStore();
+  const { balance: pettyCashBalance, transactions: pettyCashTransactions } = usePettyCashTransactions();
+  const { withdrawals: employeeLoanWithdrawals } = useEmployeeLoanWithdrawals();
+  const { repayments: employeeLoanRepayments } = useEmployeeLoanRepayments();
+  const { profiles: garnishmentProfiles } = useGarnishmentProfiles();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -23,15 +23,15 @@ const Index = () => {
 
   // Calculate total outstanding loans
   const totalLoansOutstanding = employeeLoanWithdrawals.reduce((total, withdrawal) => {
-    const repayments = employeeLoanRepayments
-      .filter(r => r.employee === withdrawal.employee)
-      .reduce((sum, r) => sum + r.amount, 0);
-    return total + (withdrawal.amount - repayments);
+    const employeeRepayments = employeeLoanRepayments
+      .filter(r => r.employee_name === withdrawal.employee_name)
+      .reduce((sum, r) => sum + Number(r.amount), 0);
+    return total + (Number(withdrawal.amount) - employeeRepayments);
   }, 0);
 
   // Calculate total garnishments remaining
   const totalGarnishmentsRemaining = garnishmentProfiles.reduce((total, profile) => {
-    return total + profile.balanceRemaining;
+    return total + Number(profile.balance_remaining || 0);
   }, 0);
 
   // Get pending transactions count

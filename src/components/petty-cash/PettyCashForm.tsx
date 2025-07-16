@@ -5,7 +5,8 @@ import { z } from 'zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import * as SwitchPrimitives from "@radix-ui/react-switch";
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { usePettyCashTransactions } from '@/hooks/usePettyCashTransactions';
+import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,7 +60,8 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function PettyCashForm() {
-  const { addPettyCashTransaction, employees } = useFinanceStore();
+  const { addTransaction } = usePettyCashTransactions();
+  const { employees } = useEmployees();
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -77,21 +79,23 @@ export function PettyCashForm() {
 
   const watchedType = form.watch('type');
 
-  const onSubmit = (data: FormData) => {
-    addPettyCashTransaction({
-      date: data.date,
+  const onSubmit = async (data: FormData) => {
+    const { error } = await addTransaction({
+      date: data.date.toISOString().split('T')[0],
       amount: data.amount,
       type: data.type,
-      employee: data.employee === 'none' ? undefined : data.employee,
-      purpose: data.purpose || undefined,
-      notes: data.notes || undefined,
+      employee_name: data.employee === 'none' ? null : data.employee,
+      purpose: data.purpose || null,
+      notes: data.notes || null,
       approved: data.approved,
     });
 
-    toast({
-      title: 'Transaction Added',
-      description: `${data.type === 'credit' ? 'Credit' : 'Debit'} of $${data.amount.toFixed(2)} has been recorded.`,
-    });
+    if (!error) {
+      toast({
+        title: 'Transaction Added',
+        description: `${data.type === 'credit' ? 'Credit' : 'Debit'} of $${data.amount.toFixed(2)} has been recorded.`,
+      });
+    }
 
     form.reset({
       date: new Date(),

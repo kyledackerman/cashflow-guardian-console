@@ -3,7 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { useEmployeeLoanWithdrawals } from '@/hooks/useEmployeeLoanWithdrawals';
+import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,7 +55,8 @@ const approvers = [
 ];
 
 export function LoanWithdrawalForm() {
-  const { addEmployeeLoanWithdrawal, employees } = useFinanceStore();
+  const { addWithdrawal } = useEmployeeLoanWithdrawals();
+  const { employees } = useEmployees();
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -69,21 +71,23 @@ export function LoanWithdrawalForm() {
     },
   });
 
-  const onSubmit = (data: FormData) => {
-    addEmployeeLoanWithdrawal({
-      employee: data.employee,
-      date: data.date,
+  const onSubmit = async (data: FormData) => {
+    const { error } = await addWithdrawal({
+      employee_name: data.employee,
+      date: data.date.toISOString().split('T')[0],
       amount: data.amount,
-      notes: data.notes || undefined,
-      approvedBy: data.approvedBy,
-      dueDate: data.dueDate,
+      notes: data.notes || null,
+      approved_by_name: data.approvedBy,
+      due_date: data.dueDate.toISOString().split('T')[0],
       status: 'pending',
     });
 
-    toast({
-      title: 'Loan Withdrawal Added',
-      description: `$${data.amount.toFixed(2)} withdrawal recorded for ${data.employee}.`,
-    });
+    if (!error) {
+      toast({
+        title: 'Loan Withdrawal Added',
+        description: `$${data.amount.toFixed(2)} withdrawal recorded for ${data.employee}.`,
+      });
+    }
 
     form.reset({
       employee: '',

@@ -7,7 +7,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
+import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from '@/hooks/use-toast';
 import { DocumentUpload } from './DocumentUpload';
 import { GarnishmentDocument } from '@/types/finance';
@@ -25,7 +26,8 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function GarnishmentProfileForm() {
-  const { employees, addGarnishmentProfile } = useFinanceStore();
+  const { employees } = useEmployees();
+  const { addProfile } = useGarnishmentProfiles();
   const [documents, setDocuments] = useState<GarnishmentDocument[]>([]);
   
   const form = useForm<FormData>({
@@ -41,25 +43,27 @@ export function GarnishmentProfileForm() {
     },
   });
 
-  const onSubmit = (data: FormData) => {
-    addGarnishmentProfile({
-      employee: data.employee,
+  const onSubmit = async (data: FormData) => {
+    const { error } = await addProfile({
+      employee_name: data.employee,
       creditor: data.creditor,
-      courtDistrict: data.courtDistrict,
-      caseNumber: data.caseNumber,
-      lawFirm: data.lawFirm,
-      totalAmountOwed: data.totalAmountOwed,
-      notes: data.notes,
-      attachments: documents,
+      court_district: data.courtDistrict,
+      case_number: data.caseNumber,
+      law_firm: data.lawFirm,
+      total_amount_owed: data.totalAmountOwed,
+      notes: data.notes || null,
+      // Note: Document handling will need to be updated for Supabase Storage
     });
     
-    toast({
-      title: "Garnishment Profile Created",
-      description: `Profile for ${data.employee} has been created successfully.`,
-    });
+    if (!error) {
+      toast({
+        title: "Garnishment Profile Created",
+        description: `Profile for ${data.employee} has been created successfully.`,
+      });
 
-    form.reset();
-    setDocuments([]);
+      form.reset();
+      setDocuments([]);
+    }
   };
 
   return (

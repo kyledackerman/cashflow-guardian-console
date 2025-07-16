@@ -3,7 +3,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
+import { useGarnishmentInstallments } from '@/hooks/useGarnishmentInstallments';
+import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
@@ -46,12 +48,9 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function GarnishmentInstallmentForm() {
-  const { 
-    addGarnishmentInstallment, 
-    garnishmentProfiles, 
-    garnishmentInstallments,
-    employees 
-  } = useFinanceStore();
+  const { profiles } = useGarnishmentProfiles();
+  const { installments, addInstallment } = useGarnishmentInstallments();
+  const { employees } = useEmployees();
   const { toast } = useToast();
   const { user } = useSupabaseAuth();
 
@@ -73,25 +72,27 @@ export function GarnishmentInstallmentForm() {
   });
 
   // Get active profiles (with remaining balance)
-  const activeProfiles = garnishmentProfiles.filter(profile => profile.balanceRemaining > 0);
+  const activeProfiles = profiles.filter(profile => Number(profile.balance_remaining || 0) > 0);
 
   const selectedProfileId = form.watch('profileId');
-  const selectedProfile = garnishmentProfiles.find(p => p.id === selectedProfileId);
+  const selectedProfile = profiles.find(p => p.id === selectedProfileId);
 
   // Get next installment number for selected profile
   const getNextInstallmentNumber = (profileId: string) => {
-    const profileInstallments = garnishmentInstallments.filter(i => i.profileId === profileId);
+    const profileInstallments = installments.filter(i => i.profile_id === profileId);
     return profileInstallments.length + 1;
   };
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     if (!selectedProfile) return;
 
+    const remainingBalance = Number(selectedProfile.balance_remaining || 0);
+    
     // Validate amount doesn't exceed remaining balance
-    if (data.amount > selectedProfile.balanceRemaining) {
+    if (data.amount > remainingBalance) {
       toast({
         title: 'Invalid Amount',
-        description: `Payment amount cannot exceed remaining balance of $${selectedProfile.balanceRemaining.toFixed(2)}.`,
+        description: `Payment amount cannot exceed remaining balance of $${remainingBalance.toFixed(2)}.`,
         variant: 'destructive',
       });
       return;
@@ -99,22 +100,23 @@ export function GarnishmentInstallmentForm() {
 
     const installmentNumber = getNextInstallmentNumber(data.profileId);
 
-    addGarnishmentInstallment({
-      profileId: data.profileId,
-      employee: selectedProfile.employee,
-      payrollDate: data.payrollDate,
-      installmentNumber,
+    const { error } = await addInstallment({
+      profile_id: data.profileId,
+      employee_name: selectedProfile.employee_name,
+      payroll_date: data.payrollDate.toISOString().split('T')[0],
+      installment_number: installmentNumber,
       amount: data.amount,
-      checkNumber: data.checkNumber,
-      recordedBy: data.recordedBy,
-      notes: data.notes || undefined,
-      attachments: [],
+      check_number: data.checkNumber,
+      recorded_by_name: data.recordedBy,
+      notes: data.notes || null,
     });
 
-    toast({
-      title: 'Installment Added',
-      description: `Payment #${installmentNumber} of $${data.amount.toFixed(2)} recorded for ${selectedProfile.employee}.`,
-    });
+    if (!error) {
+      toast({
+        title: 'Installment Added',
+        description: `Payment #${installmentNumber} of $${data.amount.toFixed(2)} recorded for ${selectedProfile.employee_name}.`,
+      });
+    }
 
     form.reset({
       profileId: '',
@@ -157,7 +159,7 @@ export function GarnishmentInstallmentForm() {
                     ) : (
                       activeProfiles.map((profile) => (
                         <SelectItem key={profile.id} value={profile.id}>
-                          {profile.employee} - {profile.creditor} ({formatCurrency(profile.balanceRemaining)} remaining)
+                          {profile.employee_name} - {profile.creditor} ({formatCurrency(Number(profile.balance_remaining || 0))} remaining)
                         </SelectItem>
                       ))
                     )}
@@ -220,7 +222,7 @@ export function GarnishmentInstallmentForm() {
                   Installment Amount
                   {selectedProfile && (
                     <span className="text-sm text-muted-foreground ml-2">
-                      (Max: {formatCurrency(selectedProfile.balanceRemaining)})
+                      (Max: {formatCurrency(Number(selectedProfile.balance_remaining || 0))})
                     </span>
                   )}
                 </FormLabel>
@@ -229,7 +231,7 @@ export function GarnishmentInstallmentForm() {
                     type="number"
                     step="0.01"
                     min="0"
-                    max={selectedProfile?.balanceRemaining}
+                    max={selectedProfile ? Number(selectedProfile.balance_remaining || 0) : undefined}
                     placeholder="0.00"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -290,7 +292,7 @@ export function GarnishmentInstallmentForm() {
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-muted p-4 rounded-lg">
               <div className="text-sm text-muted-foreground">Employee</div>
-              <div className="font-medium">{selectedProfile.employee}</div>
+              <div className="font-medium">{selectedProfile.employee_name}</div>
             </div>
             <div className="bg-muted p-4 rounded-lg">
               <div className="text-sm text-muted-foreground">Next Installment #</div>
@@ -299,7 +301,7 @@ export function GarnishmentInstallmentForm() {
             <div className="bg-muted p-4 rounded-lg">
               <div className="text-sm text-muted-foreground">Balance Remaining</div>
               <div className="font-bold text-destructive">
-                {formatCurrency(selectedProfile.balanceRemaining)}
+                {formatCurrency(Number(selectedProfile.balance_remaining || 0))}
               </div>
             </div>
           </div>

@@ -1,9 +1,9 @@
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { usePettyCashTransactions } from '@/hooks/usePettyCashTransactions';
 import { Card, CardContent } from '@/components/ui/card';
 import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 
 export function PettyCashBalance() {
-  const { pettyCashBalance, pettyCashTransactions } = useFinanceStore();
+  const { transactions, balance } = usePettyCashTransactions();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -12,8 +12,8 @@ export function PettyCashBalance() {
     }).format(amount);
   };
 
-  const approvedTransactions = pettyCashTransactions.filter(t => t.approved);
-  const pendingTransactions = pettyCashTransactions.filter(t => !t.approved);
+  const approvedTransactions = transactions.filter(t => t.approved);
+  const pendingTransactions = transactions.filter(t => !t.approved);
   
   const totalCredits = approvedTransactions
     .filter(t => t.type === 'credit')
@@ -32,7 +32,7 @@ export function PettyCashBalance() {
             <div>
               <p className="text-sm font-medium text-muted-foreground">Current Balance</p>
               <p className="text-2xl font-bold text-primary">
-                {formatCurrency(pettyCashBalance)}
+                {formatCurrency(balance)}
               </p>
             </div>
           </div>

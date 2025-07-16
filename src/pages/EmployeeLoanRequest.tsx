@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { useEmployeeLoanRequests } from '@/hooks/useEmployeeLoanRequests';
+import { useEmployeeLoanWithdrawals } from '@/hooks/useEmployeeLoanWithdrawals';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +28,8 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export default function EmployeeLoanRequest() {
-  const { addEmployeeLoanRequest, getEmployeeTotalOutstandingLoans } = useFinanceStore();
+  const { addRequest } = useEmployeeLoanRequests();
+  const { getEmployeeOutstandingLoans } = useEmployeeLoanWithdrawals();
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -40,26 +42,28 @@ export default function EmployeeLoanRequest() {
     },
   });
 
-  const onSubmit = (data: FormData) => {
-    const totalOutstanding = getEmployeeTotalOutstandingLoans(data.employee);
+  const onSubmit = async (data: FormData) => {
+    const totalOutstanding = getEmployeeOutstandingLoans(data.employee);
     const willExceedLimit = (totalOutstanding + data.requestedAmount) > 1000;
 
-    addEmployeeLoanRequest({
-      employee: data.employee,
-      requestedAmount: data.requestedAmount,
+    const { error } = await addRequest({
+      employee_name: data.employee,
+      requested_amount: data.requestedAmount,
       purpose: data.purpose,
-      requestDate: new Date(),
+      request_date: new Date().toISOString().split('T')[0],
       status: 'pending',
-      notes: willExceedLimit ? 'REQUIRES INTEREST - Exceeds $1,000 limit' : undefined,
+      notes: willExceedLimit ? 'REQUIRES INTEREST - Exceeds $1,000 limit' : null,
     });
 
-    toast({
-      title: "Loan Request Submitted",
-      description: `Your request for $${data.requestedAmount.toFixed(2)} has been submitted for approval.`,
-    });
+    if (!error) {
+      toast({
+        title: "Loan Request Submitted",
+        description: `Your request for $${data.requestedAmount.toFixed(2)} has been submitted for approval.`,
+      });
 
-    form.reset();
-    setIsSubmitted(true);
+      form.reset();
+      setIsSubmitted(true);
+    }
   };
 
   if (isSubmitted) {

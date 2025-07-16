@@ -5,6 +5,8 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useFinanceStore } from '@/hooks/useFinanceStore';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
@@ -38,6 +40,7 @@ const formSchema = z.object({
   }),
   amount: z.number().min(0.01, 'Amount must be greater than 0'),
   checkNumber: z.string().min(1, 'Check number is required'),
+  recordedBy: z.string().min(1, 'Recorded by is required'),
   notes: z.string().optional(),
 });
 
@@ -47,9 +50,17 @@ export function GarnishmentInstallmentForm() {
   const { 
     addGarnishmentInstallment, 
     garnishmentProfiles, 
-    garnishmentInstallments 
+    garnishmentInstallments,
+    employees 
   } = useFinanceStore();
   const { toast } = useToast();
+  const { currentUser } = useAuth();
+  const permissions = usePermissions(currentUser?.permissions || []);
+
+  // Only managers and admins can access this form
+  const managersAndAdmins = employees.filter(emp => 
+    emp.role === 'manager' || emp.role === 'admin'
+  );
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -58,6 +69,7 @@ export function GarnishmentInstallmentForm() {
       payrollDate: new Date(),
       amount: 0,
       checkNumber: undefined,
+      recordedBy: '',
       notes: '',
     },
   });
@@ -96,6 +108,7 @@ export function GarnishmentInstallmentForm() {
       installmentNumber,
       amount: data.amount,
       checkNumber: data.checkNumber,
+      recordedBy: data.recordedBy,
       notes: data.notes || undefined,
       attachments: [],
     });
@@ -110,6 +123,7 @@ export function GarnishmentInstallmentForm() {
       payrollDate: new Date(),
       amount: 0,
       checkNumber: undefined,
+      recordedBy: '',
       notes: '',
     });
   };
@@ -230,6 +244,38 @@ export function GarnishmentInstallmentForm() {
 
           <FormField
             control={form.control}
+            name="recordedBy"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Recorded By</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select manager/admin" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {managersAndAdmins.length === 0 ? (
+                      <div className="py-2 px-3 text-sm text-muted-foreground">
+                        No managers or admins found
+                      </div>
+                    ) : (
+                      managersAndAdmins.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.name}>
+                          {employee.name} ({employee.role})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+            control={form.control}
             name="checkNumber"
             render={({ field }) => (
               <FormItem>
@@ -241,7 +287,6 @@ export function GarnishmentInstallmentForm() {
               </FormItem>
             )}
           />
-        </div>
 
         {selectedProfile && (
           <div className="grid grid-cols-3 gap-4">

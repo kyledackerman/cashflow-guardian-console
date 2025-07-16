@@ -67,6 +67,7 @@ export interface GarnishmentInstallment {
   installmentNumber: number;
   amount: number;
   checkNumber?: string;
+  recordedBy: string;
   notes?: string;
   attachments: GarnishmentDocument[];
   createdAt: Date;

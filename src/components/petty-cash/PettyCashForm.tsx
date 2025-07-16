@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
+import * as SwitchPrimitives from "@radix-ui/react-switch";
 import { useFinanceStore } from '@/hooks/useFinanceStore';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -257,10 +258,8 @@ export function PettyCashForm() {
           name="approved"
           render={({ field }) => (
             <FormItem className={cn(
-              "flex flex-row items-center justify-between rounded-lg border p-4 transition-all duration-200",
-              field.value 
-                ? "border-green-200/20 bg-green-950/20 dark:border-green-800/30 dark:bg-green-950/20" 
-                : "border-orange-200/20 bg-orange-950/20 dark:border-orange-800/30 dark:bg-orange-950/20"
+              "flex flex-row items-center justify-between rounded-lg border-2 p-4 transition-all duration-200",
+              "border-primary/30 bg-card"
             )}>
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Approved</FormLabel>
@@ -269,10 +268,22 @@ export function PettyCashForm() {
                 </div>
               </div>
               <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
+                <div className="relative">
+                  <SwitchPrimitives.Root
+                    className={cn(
+                      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
+                      field.value 
+                        ? "bg-green-600 data-[state=checked]:bg-green-600" 
+                        : "bg-red-600 data-[state=unchecked]:bg-red-600"
+                    )}
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  >
+                    <SwitchPrimitives.Thumb
+                      className="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
+                    />
+                  </SwitchPrimitives.Root>
+                </div>
               </FormControl>
             </FormItem>
           )}

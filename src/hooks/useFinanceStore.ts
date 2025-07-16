@@ -39,6 +39,7 @@ interface FinanceStore {
   
   addEmployee: (employee: Omit<Employee, 'id'>) => void;
   updateEmployee: (id: string, updates: Partial<Employee>) => void;
+  resetToDefaultData: () => void;
 }
 
 export const useFinanceStore = create<FinanceStore>()(
@@ -211,6 +212,31 @@ export const useFinanceStore = create<FinanceStore>()(
           ),
         }));
       },
+      
+      resetToDefaultData: () => set({
+        pettyCashTransactions: [],
+        pettyCashBalance: 0,
+        employeeLoanWithdrawals: [],
+        employeeLoanRepayments: [],
+        garnishmentProfiles: [],
+        garnishmentInstallments: [],
+        employees: [
+          {
+            id: 'john-doe',
+            name: 'John Doe',
+            active: true,
+            role: 'manager',
+            permissions: ['VIEW_FINANCES', 'EDIT_TRANSACTIONS', 'DELETE_RECORDS', 'MANAGE_EMPLOYEES', 'APPROVE_TRANSACTIONS']
+          },
+          {
+            id: 'sarah-wilson',
+            name: 'Sarah Wilson',
+            active: true,
+            role: 'manager',
+            permissions: ['VIEW_FINANCES', 'EDIT_TRANSACTIONS', 'DELETE_RECORDS', 'MANAGE_EMPLOYEES', 'APPROVE_TRANSACTIONS']
+          }
+        ]
+      }),
     }),
     {
       name: 'finance-store',

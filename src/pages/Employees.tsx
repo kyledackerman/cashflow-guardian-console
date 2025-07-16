@@ -20,6 +20,10 @@ export default function Employees() {
   const { currentUser } = useAuth();
   const permissions = usePermissions(currentUser?.permissions || []);
   const { toast } = useToast();
+  
+  // Check if there are any active managers in the system
+  const hasManagers = employees.some(emp => emp.active && emp.role === 'manager');
+  const canAddEmployees = permissions.canManageEmployees() || !hasManagers;
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -94,8 +98,13 @@ export default function Employees() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Employee Management</h1>
           <p className="text-muted-foreground">Manage employee records and view financial summaries</p>
+          {!hasManagers && (
+            <Badge variant="outline" className="mt-2">
+              Bootstrap Mode: Add your first manager to get started
+            </Badge>
+          )}
         </div>
-        {permissions.canManageEmployees() && (
+        {canAddEmployees && (
           <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
             setIsAddDialogOpen(open);
             if (!open) resetForm();
@@ -233,7 +242,7 @@ export default function Employees() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        {permissions.canManageEmployees() && (
+                        {canAddEmployees && (
                           <>
                             <Button
                               variant="ghost"

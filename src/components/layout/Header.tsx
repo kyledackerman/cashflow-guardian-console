@@ -14,11 +14,13 @@ import { DollarSign, Download, Upload, Database, User, LogOut, ShieldCheck } fro
 import { useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginDialog } from '@/components/auth/LoginDialog';
+import { useToast } from '@/hooks/use-toast';
 
 export function Header() {
-  const { pettyCashBalance } = useFinanceStore();
+  const { pettyCashBalance, resetToDefaultData } = useFinanceStore();
   const { downloadBackup, restoreFromBackup, getLastBackupTime } = useBackupManager();
   const { currentUser, logout } = useAuth();
+  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
 
@@ -85,6 +87,16 @@ export function Header() {
                 Restore from Backup
               </DropdownMenuItem>
               
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => {
+                if (confirm('This will reset all data to default. Are you sure?')) {
+                  resetToDefaultData();
+                  toast({ title: "Success", description: "Data reset to defaults" });
+                }
+              }}>
+                <Database className="mr-2 h-4 w-4" />
+                Reset to Default Data
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <div className="px-2 py-1 text-xs text-muted-foreground">
                 Last backup: {formatBackupTime(lastBackupTime)}

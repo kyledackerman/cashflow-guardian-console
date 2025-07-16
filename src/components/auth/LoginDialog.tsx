@@ -41,6 +41,18 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({ open, onOpenChange }) 
         </DialogHeader>
         
         <div className="space-y-4">
+          {managers.length === 0 && (
+            <div className="p-3 bg-muted rounded-md">
+              <p className="text-sm text-muted-foreground">
+                No managers found. You may need to add a manager first from the Employees page.
+              </p>
+            </div>
+          )}
+          
+          <div className="text-xs text-muted-foreground">
+            Debug: Found {managers.length} manager(s): {managers.map(m => m.name).join(', ') || 'None'}
+          </div>
+          
           <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
             <SelectTrigger>
               <SelectValue placeholder="Select an employee" />

@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  roleValidating: boolean;
   signUp: (email: string, password: string, name: string, role?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -31,6 +32,7 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [roleValidating, setRoleValidating] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,12 +44,18 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
         setLoading(false);
 
         if (event === 'SIGNED_IN' && session?.user) {
-          // Check if user can login - validate role
+          // Validate role access with proper loading state
+          setRoleValidating(true);
           setTimeout(async () => {
             try {
-              const { data: canLogin } = await supabase.rpc('can_user_login', {
+              const { data: canLogin, error: rpcError } = await supabase.rpc('can_user_login', {
                 user_id: session.user.id
               });
+
+              if (rpcError) {
+                console.error('RPC error:', rpcError);
+                throw rpcError;
+              }
 
               if (!canLogin) {
                 await supabase.auth.signOut();
@@ -71,17 +79,50 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
                 description: "Unable to verify account permissions. Please try again.",
                 variant: "destructive"
               });
+            } finally {
+              setRoleValidating(false);
             }
           }, 0);
+        } else {
+          setRoleValidating(false);
         }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check for existing session with role validation
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Validate existing session role access
+      if (session?.user) {
+        setRoleValidating(true);
+        try {
+          const { data: canLogin, error: rpcError } = await supabase.rpc('can_user_login', {
+            user_id: session.user.id
+          });
+
+          if (rpcError) {
+            console.error('Session validation RPC error:', rpcError);
+            throw rpcError;
+          }
+
+          if (!canLogin) {
+            await supabase.auth.signOut();
+            toast({
+              title: "Session Invalid",
+              description: "Your account does not have access permissions.",
+              variant: "destructive"
+            });
+          }
+        } catch (error) {
+          console.error('Error validating existing session:', error);
+          await supabase.auth.signOut();
+        } finally {
+          setRoleValidating(false);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -143,22 +184,7 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
         return { error };
       }
 
-      // Check if user can login (not employee role)
-      const { data: canLogin } = await supabase.rpc('can_user_login', {
-        user_id: (await supabase.auth.getUser()).data.user?.id
-      });
-
-      if (!canLogin) {
-        await supabase.auth.signOut();
-        const restrictionError = new Error("Employee accounts cannot log in. Please contact management for access.");
-        toast({
-          title: "Access Restricted",
-          description: "Employee accounts cannot log in. Please contact management for access.",
-          variant: "destructive"
-        });
-        return { error: restrictionError };
-      }
-
+      // Role validation is now handled in onAuthStateChange to avoid redundancy
       return { error: null };
     } catch (error: any) {
       toast({
@@ -192,6 +218,7 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
     user,
     session,
     loading,
+    roleValidating,
     signUp,
     signIn,
     signOut,

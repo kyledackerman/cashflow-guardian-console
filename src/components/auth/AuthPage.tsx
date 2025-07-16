@@ -11,7 +11,7 @@ import { Loader2, Shield } from 'lucide-react';
 
 export const AuthPage = () => {
   const navigate = useNavigate();
-  const { signIn, signUp, user, loading } = useSupabaseAuth();
+  const { signIn, signUp, user, loading, roleValidating } = useSupabaseAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form states for sign in
@@ -24,17 +24,20 @@ export const AuthPage = () => {
   const [signUpName, setSignUpName] = useState('');
   const [signUpRole, setSignUpRole] = useState('employee');
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated and role validation complete
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && !roleValidating) {
       navigate('/');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, roleValidating, navigate]);
 
-  if (loading) {
+  if (loading || roleValidating) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center flex-col space-y-4">
         <Loader2 className="h-8 w-8 animate-spin" />
+        <p className="text-sm text-muted-foreground">
+          {loading ? 'Loading...' : 'Validating access permissions...'}
+        </p>
       </div>
     );
   }

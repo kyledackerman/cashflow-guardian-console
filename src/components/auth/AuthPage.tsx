@@ -74,6 +74,12 @@ export const AuthPage = () => {
           <CardDescription>
             Sign in to access your financial management tools
           </CardDescription>
+          <div className="mt-4 p-3 bg-muted rounded-md">
+            <p className="text-sm text-muted-foreground">
+              <strong>Note:</strong> Only management and admin users can log in. 
+              Employees can register for record-keeping purposes.
+            </p>
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">

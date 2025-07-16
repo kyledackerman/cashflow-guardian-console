@@ -41,13 +41,37 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
         setUser(session?.user ?? null);
         setLoading(false);
 
-        if (event === 'SIGNED_IN') {
-          // Defer any additional data fetching
-          setTimeout(() => {
-            toast({
-              title: "Welcome back!",
-              description: "You have been successfully signed in."
-            });
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Check if user can login - validate role
+          setTimeout(async () => {
+            try {
+              const { data: canLogin } = await supabase.rpc('can_user_login', {
+                user_id: session.user.id
+              });
+
+              if (!canLogin) {
+                await supabase.auth.signOut();
+                toast({
+                  title: "Access Restricted",
+                  description: "Employee accounts cannot log in. Please contact management for access.",
+                  variant: "destructive"
+                });
+                return;
+              }
+
+              toast({
+                title: "Welcome back!",
+                description: "You have been successfully signed in."
+              });
+            } catch (error) {
+              console.error('Error checking user permissions:', error);
+              await supabase.auth.signOut();
+              toast({
+                title: "Access Error",
+                description: "Unable to verify account permissions. Please try again.",
+                variant: "destructive"
+              });
+            }
           }, 0);
         }
       }
@@ -116,9 +140,26 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
           description: error.message,
           variant: "destructive"
         });
+        return { error };
       }
 
-      return { error };
+      // Check if user can login (not employee role)
+      const { data: canLogin } = await supabase.rpc('can_user_login', {
+        user_id: (await supabase.auth.getUser()).data.user?.id
+      });
+
+      if (!canLogin) {
+        await supabase.auth.signOut();
+        const restrictionError = new Error("Employee accounts cannot log in. Please contact management for access.");
+        toast({
+          title: "Access Restricted",
+          description: "Employee accounts cannot log in. Please contact management for access.",
+          variant: "destructive"
+        });
+        return { error: restrictionError };
+      }
+
+      return { error: null };
     } catch (error: any) {
       toast({
         title: "Sign In Failed",

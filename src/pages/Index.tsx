@@ -1,8 +1,11 @@
 import { useFinanceStore } from '@/hooks/useFinanceStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Users, Receipt, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DollarSign, Users, Receipt, TrendingUp, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
+  const navigate = useNavigate();
   const { 
     pettyCashBalance, 
     pettyCashTransactions,
@@ -41,6 +44,13 @@ const Index = () => {
           <h1 className="text-3xl font-bold text-foreground">CashFlow Guard+</h1>
           <p className="text-muted-foreground">Internal Finance Console Dashboard</p>
         </div>
+        <Button 
+          onClick={() => navigate('/loan-request')}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          Employee Loan Request
+        </Button>
       </div>
 
       {/* Dashboard Cards */}

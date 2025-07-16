@@ -256,7 +256,12 @@ export function PettyCashForm() {
           control={form.control}
           name="approved"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <FormItem className={cn(
+              "flex flex-row items-center justify-between rounded-lg border p-4 transition-all duration-200",
+              field.value 
+                ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50" 
+                : "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50 shadow-lg"
+            )}>
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Approved</FormLabel>
                 <div className="text-sm text-muted-foreground">

@@ -129,29 +129,29 @@ export default function Employees() {
                   placeholder="Enter employee name"
                 />
               </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="active"
-                    checked={formData.active}
-                    onCheckedChange={(active) => setFormData({ ...formData, active })}
-                  />
-                  <Label htmlFor="active">Active Employee</Label>
-                </div>
-                <div>
-                  <Label htmlFor="role">Role</Label>
-                  <Select
-                    value={formData.role}
-                    onValueChange={(value: 'employee' | 'manager') => setFormData({ ...formData, role: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="employee">Employee</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="active"
+                  checked={formData.active}
+                  onCheckedChange={(active) => setFormData({ ...formData, active })}
+                />
+                <Label htmlFor="active">Active Employee</Label>
+              </div>
+              <div>
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value: 'employee' | 'manager') => setFormData({ ...formData, role: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel

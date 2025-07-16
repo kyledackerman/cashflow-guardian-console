@@ -40,9 +40,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = (employee: Employee) => {
     // Ensure employee has proper permissions based on role
+    const rolePermissions = employee.role && ROLE_PERMISSIONS[employee.role as keyof typeof ROLE_PERMISSIONS] 
+      ? [...ROLE_PERMISSIONS[employee.role as keyof typeof ROLE_PERMISSIONS]] 
+      : [];
+    
     const employeeWithPermissions: Employee = {
       ...employee,
-      permissions: employee.permissions || [...ROLE_PERMISSIONS[employee.role]] || []
+      permissions: employee.permissions || rolePermissions
     };
     setCurrentUser(employeeWithPermissions);
     localStorage.setItem('currentUserId', employee.id);

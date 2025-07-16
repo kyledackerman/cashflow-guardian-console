@@ -52,12 +52,7 @@ export const useFinanceStore = create<FinanceStore>()(
       employeeLoanRepayments: [],
       garnishmentProfiles: [],
       garnishmentInstallments: [],
-  employees: [
-    { id: '1', name: 'John Doe', active: true, role: 'manager', permissions: ['VIEW_FINANCES', 'EDIT_TRANSACTIONS', 'DELETE_RECORDS', 'MANAGE_EMPLOYEES', 'APPROVE_TRANSACTIONS'] },
-    { id: '2', name: 'Jane Smith', active: true, role: 'employee', permissions: ['VIEW_FINANCES'] },
-    { id: '3', name: 'Mike Johnson', active: true, role: 'employee', permissions: ['VIEW_FINANCES'] },
-    { id: '4', name: 'Sarah Wilson', active: true, role: 'manager', permissions: ['VIEW_FINANCES', 'EDIT_TRANSACTIONS', 'DELETE_RECORDS', 'MANAGE_EMPLOYEES', 'APPROVE_TRANSACTIONS'] },
-  ],
+      employees: [],
 
       // Petty Cash Actions
       addPettyCashTransaction: (transaction) => {

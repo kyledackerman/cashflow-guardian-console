@@ -20,10 +20,14 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({ open, onOpenChange }) 
   const managers = employees.filter(emp => emp.active && emp.role === 'manager');
 
   const handleLogin = () => {
-    const selectedEmployee = managers.find(emp => emp.id === selectedEmployeeId);
-    if (selectedEmployee) {
-      login(selectedEmployee);
-      onOpenChange?.(false);
+    try {
+      const selectedEmployee = managers.find(emp => emp.id === selectedEmployeeId);
+      if (selectedEmployee) {
+        login(selectedEmployee);
+        onOpenChange?.(false);
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
     }
   };
 

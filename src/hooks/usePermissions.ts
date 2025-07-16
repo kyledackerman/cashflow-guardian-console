@@ -1,4 +1,7 @@
-import { Permission } from '@/types/finance';
+
+import { Database } from '@/integrations/supabase/types';
+
+type Permission = Database['public']['Enums']['employee_permission'];
 
 export const PERMISSIONS = {
   VIEW_FINANCES: 'VIEW_FINANCES' as const,

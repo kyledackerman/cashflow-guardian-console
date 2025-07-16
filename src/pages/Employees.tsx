@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Edit, Search, Users, UserCheck, UserX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Employee } from '@/types/finance';
+import { Employee } from '@/types/ui';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { ROLE_PERMISSIONS } from '@/hooks/usePermissions';
 

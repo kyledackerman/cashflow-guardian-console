@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Upload, File, Download } from 'lucide-react';
-import { GarnishmentDocument } from '@/types/finance';
+import { GarnishmentDocument } from '@/types/ui';
 import { toast } from '@/hooks/use-toast';
 
 interface DocumentUploadProps {

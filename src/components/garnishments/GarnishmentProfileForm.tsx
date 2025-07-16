@@ -11,7 +11,7 @@ import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
 import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from '@/hooks/use-toast';
 import { DocumentUpload } from './DocumentUpload';
-import { GarnishmentDocument } from '@/types/finance';
+import { GarnishmentDocument } from '@/types/ui';
 
 const formSchema = z.object({
   employee: z.string().min(1, 'Employee is required'),

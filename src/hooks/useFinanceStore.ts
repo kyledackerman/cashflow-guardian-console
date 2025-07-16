@@ -6,7 +6,8 @@ import {
   EmployeeLoanRepayment,
   GarnishmentProfile,
   GarnishmentInstallment,
-  Employee
+  Employee,
+  EmployeeLoanRequest
 } from '@/types/finance';
 import { ROLE_PERMISSIONS } from '@/hooks/usePermissions';
 
@@ -18,6 +19,7 @@ interface FinanceStore {
   // Employee Loans
   employeeLoanWithdrawals: EmployeeLoanWithdrawal[];
   employeeLoanRepayments: EmployeeLoanRepayment[];
+  employeeLoanRequests: EmployeeLoanRequest[];
   
   // Garnishments
   garnishmentProfiles: GarnishmentProfile[];
@@ -32,7 +34,11 @@ interface FinanceStore {
   deletePettyCashTransaction: (id: string) => void;
   
   addEmployeeLoanWithdrawal: (withdrawal: Omit<EmployeeLoanWithdrawal, 'id' | 'createdAt'>) => void;
+  updateEmployeeLoanWithdrawal: (id: string, updates: Partial<EmployeeLoanWithdrawal>) => void;
   addEmployeeLoanRepayment: (repayment: Omit<EmployeeLoanRepayment, 'id' | 'createdAt'>) => void;
+  addEmployeeLoanRequest: (request: Omit<EmployeeLoanRequest, 'id' | 'createdAt'>) => void;
+  updateEmployeeLoanRequest: (id: string, updates: Partial<EmployeeLoanRequest>) => void;
+  getEmployeeTotalOutstandingLoans: (employeeName: string) => number;
   
   addGarnishmentProfile: (profile: Omit<GarnishmentProfile, 'id' | 'createdAt' | 'updatedAt' | 'amountPaidSoFar' | 'balanceRemaining'>) => void;
   updateGarnishmentProfile: (id: string, updates: Partial<GarnishmentProfile>) => void;
@@ -51,6 +57,7 @@ export const useFinanceStore = create<FinanceStore>()(
       pettyCashBalance: 0,
       employeeLoanWithdrawals: [],
       employeeLoanRepayments: [],
+      employeeLoanRequests: [],
       garnishmentProfiles: [],
       garnishmentInstallments: [],
       employees: [],
@@ -102,14 +109,30 @@ export const useFinanceStore = create<FinanceStore>()(
 
       // Employee Loan Actions
       addEmployeeLoanWithdrawal: (withdrawal) => {
+        const state = get();
+        const totalOutstanding = state.employeeLoanWithdrawals
+          .filter(w => w.employee === withdrawal.employee && (w.status === 'approved_manager' || w.status === 'approved_admin'))
+          .reduce((sum, w) => sum + w.amount, 0);
+        
         const newWithdrawal: EmployeeLoanWithdrawal = {
           ...withdrawal,
           id: crypto.randomUUID(),
           createdAt: new Date(),
+          status: 'pending',
+          totalOutstandingAtTime: totalOutstanding,
+          requiresInterest: (totalOutstanding + withdrawal.amount) > 1000,
         };
 
         set((state) => ({
           employeeLoanWithdrawals: [...state.employeeLoanWithdrawals, newWithdrawal],
+        }));
+      },
+
+      updateEmployeeLoanWithdrawal: (id, updates) => {
+        set((state) => ({
+          employeeLoanWithdrawals: state.employeeLoanWithdrawals.map((withdrawal) =>
+            withdrawal.id === id ? { ...withdrawal, ...updates } : withdrawal
+          ),
         }));
       },
 
@@ -123,6 +146,34 @@ export const useFinanceStore = create<FinanceStore>()(
         set((state) => ({
           employeeLoanRepayments: [...state.employeeLoanRepayments, newRepayment],
         }));
+      },
+
+      addEmployeeLoanRequest: (request) => {
+        const newRequest: EmployeeLoanRequest = {
+          ...request,
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          status: 'pending',
+        };
+
+        set((state) => ({
+          employeeLoanRequests: [...state.employeeLoanRequests, newRequest],
+        }));
+      },
+
+      updateEmployeeLoanRequest: (id, updates) => {
+        set((state) => ({
+          employeeLoanRequests: state.employeeLoanRequests.map((request) =>
+            request.id === id ? { ...request, ...updates } : request
+          ),
+        }));
+      },
+
+      getEmployeeTotalOutstandingLoans: (employeeName) => {
+        const state = get();
+        return state.employeeLoanWithdrawals
+          .filter(w => w.employee === employeeName && (w.status === 'approved_manager' || w.status === 'approved_admin'))
+          .reduce((sum, w) => sum + w.amount, 0);
       },
 
       // Garnishment Actions

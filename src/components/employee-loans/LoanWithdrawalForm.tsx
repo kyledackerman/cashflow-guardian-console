@@ -77,6 +77,7 @@ export function LoanWithdrawalForm() {
       notes: data.notes || undefined,
       approvedBy: data.approvedBy,
       dueDate: data.dueDate,
+      status: 'pending',
     });
 
     toast({

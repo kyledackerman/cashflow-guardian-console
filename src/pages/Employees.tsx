@@ -29,7 +29,7 @@ export default function Employees() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [formData, setFormData] = useState({ name: '', active: true, role: 'employee' as 'employee' | 'manager' });
+  const [formData, setFormData] = useState({ name: '', active: true, role: 'employee' as 'employee' | 'manager' | 'admin' });
 
   const filteredEmployees = employees.filter(employee =>
     employee.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -148,7 +148,7 @@ export default function Employees() {
                 <Label htmlFor="role">Role</Label>
                 <Select
                   value={formData.role}
-                  onValueChange={(value: 'employee' | 'manager') => setFormData({ ...formData, role: value })}
+                  onValueChange={(value: 'employee' | 'manager' | 'admin') => setFormData({ ...formData, role: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -156,6 +156,7 @@ export default function Employees() {
                   <SelectContent>
                     <SelectItem value="employee">Employee</SelectItem>
                     <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -213,8 +214,8 @@ export default function Employees() {
                   <TableRow key={employee.id}>
                     <TableCell className="font-medium">{employee.name}</TableCell>
                     <TableCell>
-                      <Badge variant={employee.role === 'manager' ? "default" : "outline"}>
-                        {employee.role === 'manager' ? 'Manager' : 'Employee'}
+                      <Badge variant={employee.role === 'employee' ? "outline" : "default"}>
+                        {employee.role === 'admin' ? 'Admin' : employee.role === 'manager' ? 'Manager' : 'Employee'}
                       </Badge>
                     </TableCell>
                     <TableCell>

@@ -16,8 +16,11 @@ export interface EmployeeLoanWithdrawal {
   date: Date;
   amount: number;
   notes?: string;
-  approvedBy: string;
+  approvedBy?: string;
   dueDate: Date;
+  status: 'pending' | 'approved_manager' | 'approved_admin' | 'rejected';
+  totalOutstandingAtTime?: number;
+  requiresInterest?: boolean;
   createdAt: Date;
 }
 
@@ -58,7 +61,7 @@ export interface Employee {
   id: string;
   name: string;
   active: boolean;
-  role: 'employee' | 'manager';
+  role: 'employee' | 'manager' | 'admin';
   permissions: Permission[];
 }
 
@@ -67,4 +70,16 @@ export type Permission =
   | 'EDIT_TRANSACTIONS' 
   | 'DELETE_RECORDS' 
   | 'MANAGE_EMPLOYEES' 
-  | 'APPROVE_TRANSACTIONS';
+  | 'APPROVE_TRANSACTIONS'
+  | 'APPROVE_LARGE_LOANS';
+
+export interface EmployeeLoanRequest {
+  id: string;
+  employee: string;
+  requestedAmount: number;
+  purpose: string;
+  requestDate: Date;
+  status: 'pending' | 'approved_manager' | 'approved_admin' | 'rejected';
+  notes?: string;
+  createdAt: Date;
+}

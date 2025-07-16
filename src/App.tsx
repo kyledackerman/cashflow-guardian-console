@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import PettyCash from "./pages/PettyCash";
 import Employees from "./pages/Employees";
 import EmployeeLoans from "./pages/EmployeeLoans";
+import EmployeeLoanRequest from "./pages/EmployeeLoanRequest";
 import Garnishments from "./pages/Garnishments";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const AppContent = () => {
             <Route path="loans" element={<EmployeeLoans />} />
             <Route path="garnishments" element={<Garnishments />} />
           </Route>
+          <Route path="loan-request" element={<EmployeeLoanRequest />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

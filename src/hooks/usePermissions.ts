@@ -6,6 +6,7 @@ export const PERMISSIONS = {
   DELETE_RECORDS: 'DELETE_RECORDS' as const,
   MANAGE_EMPLOYEES: 'MANAGE_EMPLOYEES' as const,
   APPROVE_TRANSACTIONS: 'APPROVE_TRANSACTIONS' as const,
+  APPROVE_LARGE_LOANS: 'APPROVE_LARGE_LOANS' as const,
 } as const;
 
 export const ROLE_PERMISSIONS = {
@@ -16,6 +17,14 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.DELETE_RECORDS,
     PERMISSIONS.MANAGE_EMPLOYEES,
     PERMISSIONS.APPROVE_TRANSACTIONS,
+  ],
+  admin: [
+    PERMISSIONS.VIEW_FINANCES,
+    PERMISSIONS.EDIT_TRANSACTIONS,
+    PERMISSIONS.DELETE_RECORDS,
+    PERMISSIONS.MANAGE_EMPLOYEES,
+    PERMISSIONS.APPROVE_TRANSACTIONS,
+    PERMISSIONS.APPROVE_LARGE_LOANS,
   ],
 } as const;
 
@@ -29,6 +38,12 @@ export const usePermissions = (userPermissions: Permission[]) => {
   const canManageEmployees = () => hasPermission(PERMISSIONS.MANAGE_EMPLOYEES);
   const canApproveTransactions = () => hasPermission(PERMISSIONS.APPROVE_TRANSACTIONS);
   const canViewFinances = () => hasPermission(PERMISSIONS.VIEW_FINANCES);
+  const canApproveLargeLoans = () => hasPermission(PERMISSIONS.APPROVE_LARGE_LOANS);
+  
+  const canApproveAmount = (amount: number): boolean => {
+    if (amount > 500) return canApproveLargeLoans();
+    return canApproveTransactions();
+  };
 
   return {
     hasPermission,
@@ -37,5 +52,7 @@ export const usePermissions = (userPermissions: Permission[]) => {
     canManageEmployees,
     canApproveTransactions,
     canViewFinances,
+    canApproveLargeLoans,
+    canApproveAmount,
   };
 };

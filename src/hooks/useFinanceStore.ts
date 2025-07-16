@@ -8,6 +8,7 @@ import {
   GarnishmentInstallment,
   Employee
 } from '@/types/finance';
+import { ROLE_PERMISSIONS } from '@/hooks/usePermissions';
 
 interface FinanceStore {
   // Petty Cash
@@ -208,30 +209,75 @@ export const useFinanceStore = create<FinanceStore>()(
         }));
       },
       
-      resetToDefaultData: () => set({
-        pettyCashTransactions: [],
-        pettyCashBalance: 0,
-        employeeLoanWithdrawals: [],
-        employeeLoanRepayments: [],
-        garnishmentProfiles: [],
-        garnishmentInstallments: [],
-        employees: [
-          {
-            id: 'john-doe',
-            name: 'John Doe',
-            active: true,
-            role: 'manager',
-            permissions: ['VIEW_FINANCES', 'EDIT_TRANSACTIONS', 'DELETE_RECORDS', 'MANAGE_EMPLOYEES', 'APPROVE_TRANSACTIONS']
-          },
-          {
-            id: 'sarah-wilson',
-            name: 'Sarah Wilson',
-            active: true,
-            role: 'manager',
-            permissions: ['VIEW_FINANCES', 'EDIT_TRANSACTIONS', 'DELETE_RECORDS', 'MANAGE_EMPLOYEES', 'APPROVE_TRANSACTIONS']
+      resetToDefaultData: () => {
+        const state = get();
+        const hasData = state.pettyCashTransactions.length > 0 || 
+                       state.employeeLoanWithdrawals.length > 0 || 
+                       state.employeeLoanRepayments.length > 0 || 
+                       state.garnishmentProfiles.length > 0 || 
+                       state.employees.length > 0;
+
+        if (hasData) {
+          const dataInfo = [
+            state.pettyCashTransactions.length > 0 && `${state.pettyCashTransactions.length} petty cash transactions`,
+            state.employeeLoanWithdrawals.length > 0 && `${state.employeeLoanWithdrawals.length} loan withdrawals`,
+            state.employeeLoanRepayments.length > 0 && `${state.employeeLoanRepayments.length} loan repayments`,
+            state.garnishmentProfiles.length > 0 && `${state.garnishmentProfiles.length} garnishment profiles`,
+            state.employees.length > 0 && `${state.employees.length} employees`
+          ].filter(Boolean).join(', ');
+
+          const confirmed = window.confirm(
+            `⚠️ WARNING: This will permanently delete ALL your data!\n\n` +
+            `Data to be lost:\n${dataInfo}\n\n` +
+            `This action cannot be undone. Are you absolutely sure you want to reset to default data?`
+          );
+
+          if (!confirmed) {
+            return;
           }
-        ]
-      }),
+
+          const doubleConfirm = window.confirm(
+            `🚨 FINAL WARNING 🚨\n\n` +
+            `You are about to delete ALL your finance data. This is irreversible.\n\n` +
+            `Type "RESET" in the prompt to confirm.`
+          );
+
+          if (!doubleConfirm) {
+            return;
+          }
+
+          const userInput = window.prompt('Type "RESET" to confirm data deletion:');
+          if (userInput !== 'RESET') {
+            alert('Reset cancelled. Your data is safe.');
+            return;
+          }
+        }
+
+        set({
+          pettyCashTransactions: [],
+          pettyCashBalance: 0,
+          employeeLoanWithdrawals: [],
+          employeeLoanRepayments: [],
+          garnishmentProfiles: [],
+          garnishmentInstallments: [],
+          employees: [
+            {
+              id: 'john-doe',
+              name: 'John Doe',
+              active: true,
+              role: 'manager',
+              permissions: [...ROLE_PERMISSIONS.manager]
+            },
+            {
+              id: 'sarah-wilson',
+              name: 'Sarah Wilson',
+              active: true,
+              role: 'manager',
+              permissions: [...ROLE_PERMISSIONS.manager]
+            }
+          ]
+        });
+      },
     }),
     {
       name: 'finance-store',

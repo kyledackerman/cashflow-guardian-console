@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFinanceStore } from '@/hooks/useFinanceStore';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { Users } from 'lucide-react';
 
 interface LoginDialogProps {
@@ -15,19 +16,43 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({ open, onOpenChange }) 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const { employees } = useFinanceStore();
   const { login } = useAuth();
+  const { toast } = useToast();
 
   // Filter to show only managers
   const managers = employees.filter(emp => emp.active && emp.role === 'manager');
 
   const handleLogin = () => {
+    if (!selectedEmployeeId) {
+      toast({
+        title: "Error",
+        description: "Please select a manager to login",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const selectedEmployee = managers.find(emp => emp.id === selectedEmployeeId);
       if (selectedEmployee) {
         login(selectedEmployee);
+        toast({
+          title: "Success",
+          description: `Welcome back, ${selectedEmployee.name}!`
+        });
         onOpenChange?.(false);
+      } else {
+        toast({
+          title: "Error",
+          description: "Selected manager not found",
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      console.error('Login failed:', error);
+      toast({
+        title: "Login Failed",
+        description: "An error occurred during login. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 

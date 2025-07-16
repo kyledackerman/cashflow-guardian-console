@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { Employee } from '@/types/finance';
 import { useFinanceStore } from '@/hooks/useFinanceStore';
 import { ROLE_PERMISSIONS } from '@/hooks/usePermissions';
@@ -27,18 +27,25 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<Employee | null>(null);
   const { employees } = useFinanceStore();
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     const savedUserId = localStorage.getItem('currentUserId');
-    if (savedUserId && employees.length > 0) {
+    if (savedUserId && employees.length > 0 && isMountedRef.current) {
       const user = employees.find(emp => emp.id === savedUserId);
       if (user) {
         setCurrentUser(user);
       }
     }
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [employees]);
 
-  const login = (employee: Employee) => {
+  const login = useCallback((employee: Employee) => {
+    if (!isMountedRef.current) return;
+    
     // Ensure employee has proper permissions based on role
     const rolePermissions = employee.role && ROLE_PERMISSIONS[employee.role as keyof typeof ROLE_PERMISSIONS] 
       ? [...ROLE_PERMISSIONS[employee.role as keyof typeof ROLE_PERMISSIONS]] 
@@ -50,7 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
     setCurrentUser(employeeWithPermissions);
     localStorage.setItem('currentUserId', employee.id);
-  };
+  }, []);
 
   const logout = () => {
     setCurrentUser(null);

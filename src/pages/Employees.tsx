@@ -21,9 +21,11 @@ export default function Employees() {
   const permissions = usePermissions(currentUser?.permissions || []);
   const { toast } = useToast();
   
-  // Check if there are any active managers in the system
-  const hasManagers = employees.some(emp => emp.active && emp.role === 'manager');
-  const canAddEmployees = permissions.canManageEmployees() || !hasManagers;
+  // Check if there are any managers in the system (active or inactive)
+  const hasAnyManagers = employees.some(emp => emp.role === 'manager');
+  const hasActiveManagers = employees.some(emp => emp.active && emp.role === 'manager');
+  const inactiveManagerCount = employees.filter(emp => !emp.active && emp.role === 'manager').length;
+  const canAddEmployees = permissions.canManageEmployees() || !hasAnyManagers;
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -98,9 +100,14 @@ export default function Employees() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Employee Management</h1>
           <p className="text-muted-foreground">Manage employee records and view financial summaries</p>
-          {!hasManagers && (
+          {!hasAnyManagers && (
             <Badge variant="outline" className="mt-2">
               Bootstrap Mode: Add your first manager to get started
+            </Badge>
+          )}
+          {hasAnyManagers && !hasActiveManagers && (
+            <Badge variant="secondary" className="mt-2">
+              No active managers ({inactiveManagerCount} inactive manager{inactiveManagerCount !== 1 ? 's' : ''})
             </Badge>
           )}
         </div>

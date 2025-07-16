@@ -8,30 +8,35 @@ import { Users } from 'lucide-react';
 
 interface LoginDialogProps {
   open: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const LoginDialog: React.FC<LoginDialogProps> = ({ open }) => {
+export const LoginDialog: React.FC<LoginDialogProps> = ({ open, onOpenChange }) => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const { employees } = useFinanceStore();
   const { login } = useAuth();
 
+  // Filter to show only managers
+  const managers = employees.filter(emp => emp.active && emp.role === 'manager');
+
   const handleLogin = () => {
-    const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+    const selectedEmployee = managers.find(emp => emp.id === selectedEmployeeId);
     if (selectedEmployee) {
       login(selectedEmployee);
+      onOpenChange?.(false);
     }
   };
 
   return (
-    <Dialog open={open}>
-      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Select Employee
+            Manager Login
           </DialogTitle>
           <DialogDescription>
-            Choose your employee profile to continue using the finance system.
+            Login as a manager to access editing and management features.
           </DialogDescription>
         </DialogHeader>
         
@@ -41,12 +46,12 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({ open }) => {
               <SelectValue placeholder="Select an employee" />
             </SelectTrigger>
             <SelectContent>
-              {employees.filter(emp => emp.active).map((employee) => (
-                <SelectItem key={employee.id} value={employee.id}>
+              {managers.map((manager) => (
+                <SelectItem key={manager.id} value={manager.id}>
                   <div className="flex items-center gap-2">
-                    <span>{employee.name}</span>
+                    <span>{manager.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      ({employee.role})
+                      (Manager)
                     </span>
                   </div>
                 </SelectItem>
@@ -59,7 +64,7 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({ open }) => {
             disabled={!selectedEmployeeId}
             className="w-full"
           >
-            Continue
+            Login as Manager
           </Button>
         </div>
       </DialogContent>

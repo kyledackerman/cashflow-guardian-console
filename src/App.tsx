@@ -16,11 +16,8 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { isAuthenticated } = useAuth();
-  
   return (
     <>
-      <LoginDialog open={!isAuthenticated} />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>

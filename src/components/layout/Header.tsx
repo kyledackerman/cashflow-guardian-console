@@ -10,15 +10,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
-import { DollarSign, Download, Upload, Database, User, LogOut } from 'lucide-react';
-import { useRef } from 'react';
+import { DollarSign, Download, Upload, Database, User, LogOut, ShieldCheck } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { LoginDialog } from '@/components/auth/LoginDialog';
 
 export function Header() {
   const { pettyCashBalance } = useFinanceStore();
   const { downloadBackup, restoreFromBackup, getLastBackupTime } = useBackupManager();
   const { currentUser, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -90,7 +92,7 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          {currentUser && (
+          {currentUser ? (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
@@ -103,6 +105,11 @@ export function Header() {
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setShowLoginDialog(true)}>
+              <ShieldCheck className="h-4 w-4 mr-2" />
+              Manager Login
+            </Button>
           )}
           
           <input
@@ -114,6 +121,11 @@ export function Header() {
           />
         </div>
       </div>
+      
+      <LoginDialog 
+        open={showLoginDialog} 
+        onOpenChange={setShowLoginDialog}
+      />
     </header>
   );
 }

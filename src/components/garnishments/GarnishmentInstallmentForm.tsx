@@ -97,6 +97,7 @@ export function GarnishmentInstallmentForm() {
       amount: data.amount,
       checkNumber: data.checkNumber,
       notes: data.notes || undefined,
+      attachments: [],
     });
 
     toast({

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useFinanceStore } from '@/hooks/useFinanceStore';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -18,6 +19,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
+import { Download, FileText } from 'lucide-react';
 
 export function GarnishmentProfiles() {
   const { garnishmentProfiles, garnishmentInstallments } = useFinanceStore();
@@ -72,12 +74,14 @@ export function GarnishmentProfiles() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee</TableHead>
-                  <TableHead>Creditor/Case</TableHead>
+                  <TableHead>Creditor</TableHead>
+                  <TableHead>Court</TableHead>
+                  <TableHead>Case #</TableHead>
+                  <TableHead>Law Firm</TableHead>
                   <TableHead>Total Owed</TableHead>
-                  <TableHead>Paid So Far</TableHead>
-                  <TableHead>Balance Remaining</TableHead>
-                  <TableHead>Next Due Date</TableHead>
-                  <TableHead>Notes</TableHead>
+                  <TableHead>Paid</TableHead>
+                  <TableHead>Balance</TableHead>
+                  <TableHead>Docs</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -86,6 +90,9 @@ export function GarnishmentProfiles() {
                   <TableRow key={profile.id}>
                     <TableCell className="font-medium">{profile.employee}</TableCell>
                     <TableCell>{profile.creditor}</TableCell>
+                    <TableCell className="text-sm max-w-[100px] truncate">{profile.courtDistrict}</TableCell>
+                    <TableCell className="text-sm">{profile.caseNumber}</TableCell>
+                    <TableCell className="text-sm max-w-[120px] truncate">{profile.lawFirm}</TableCell>
                     <TableCell>{formatCurrency(profile.totalAmountOwed)}</TableCell>
                     <TableCell className="text-primary">
                       {formatCurrency(profile.amountPaidSoFar)}
@@ -98,11 +105,10 @@ export function GarnishmentProfiles() {
                         {formatCurrency(profile.balanceRemaining)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{getNextDueDate(profile.id)}</TableCell>
-                    <TableCell>
-                      <div className="max-w-[150px] truncate text-sm">
-                        {profile.notes || '-'}
-                      </div>
+                    <TableCell className="text-center">
+                      <Badge variant="secondary" className="text-xs">
+                        {profile.attachments?.length || 0}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Button
@@ -129,41 +135,101 @@ export function GarnishmentProfiles() {
               Garnishment Schedule - {selectedProfileData?.profile?.employee}
             </DialogTitle>
             <DialogDescription>
-              Payment schedule and history for {selectedProfileData?.profile?.creditor}
+              {selectedProfileData?.profile?.creditor} • Case: {selectedProfileData?.profile?.caseNumber}
             </DialogDescription>
           </DialogHeader>
           
           {selectedProfileData?.profile && (
             <div className="space-y-6">
-              {/* Summary Cards */}
-              <div className="grid grid-cols-4 gap-4">
-                <div className="bg-muted p-4 rounded-lg">
-                  <div className="text-sm text-muted-foreground">Total Owed</div>
-                  <div className="text-xl font-bold">
-                    {formatCurrency(selectedProfileData.profile.totalAmountOwed)}
-                  </div>
-                </div>
-                <div className="bg-muted p-4 rounded-lg">
-                  <div className="text-sm text-muted-foreground">Paid So Far</div>
-                  <div className="text-xl font-bold text-primary">
-                    {formatCurrency(selectedProfileData.profile.amountPaidSoFar)}
-                  </div>
-                </div>
-                <div className="bg-muted p-4 rounded-lg">
-                  <div className="text-sm text-muted-foreground">Balance Remaining</div>
-                  <div className={`text-xl font-bold ${
-                    selectedProfileData.profile.balanceRemaining > 0 ? 'text-destructive' : 'text-success'
-                  }`}>
-                    {formatCurrency(selectedProfileData.profile.balanceRemaining)}
-                  </div>
-                </div>
-                <div className="bg-muted p-4 rounded-lg">
-                  <div className="text-sm text-muted-foreground">Total Payments</div>
-                  <div className="text-xl font-bold">
-                    {selectedProfileData.installments.length}
-                  </div>
-                </div>
+              {/* Profile Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Profile Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Employee:</span>
+                      <span className="font-medium">{selectedProfileData.profile.employee}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Creditor:</span>
+                      <span className="font-medium">{selectedProfileData.profile.creditor}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Court District:</span>
+                      <span className="font-medium">{selectedProfileData.profile.courtDistrict}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Case Number:</span>
+                      <span className="font-medium">{selectedProfileData.profile.caseNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Law Firm:</span>
+                      <span className="font-medium">{selectedProfileData.profile.lawFirm}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Financial Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Owed:</span>
+                      <span className="font-bold">{formatCurrency(selectedProfileData.profile.totalAmountOwed)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Paid:</span>
+                      <span className="font-bold text-primary">{formatCurrency(selectedProfileData.profile.amountPaidSoFar)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Balance:</span>
+                      <span className={`font-bold ${selectedProfileData.profile.balanceRemaining > 0 ? 'text-destructive' : 'text-success'}`}>
+                        {formatCurrency(selectedProfileData.profile.balanceRemaining)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Payments:</span>
+                      <span className="font-medium">{selectedProfileData.installments.length}</span>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
+
+              {/* Documents */}
+              {selectedProfileData.profile.attachments && selectedProfileData.profile.attachments.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Profile Documents</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {selectedProfileData.profile.attachments.map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between p-2 border rounded">
+                          <div className="flex items-center space-x-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm font-medium truncate">{doc.fileName}</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              const link = window.document.createElement('a');
+                              link.href = doc.base64Data;
+                              link.download = doc.fileName;
+                              link.click();
+                            }}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Installment History */}
               {selectedProfileData.installments.length > 0 ? (

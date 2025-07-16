@@ -33,14 +33,28 @@ export interface EmployeeLoanRepayment {
   createdAt: Date;
 }
 
+export interface GarnishmentDocument {
+  id: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  base64Data: string;
+  uploadDate: Date;
+  description?: string;
+}
+
 export interface GarnishmentProfile {
   id: string;
   employee: string;
   creditor: string;
+  courtDistrict: string;
+  caseNumber: string;
+  lawFirm: string;
   totalAmountOwed: number;
   amountPaidSoFar: number;
   balanceRemaining: number;
   notes?: string;
+  attachments: GarnishmentDocument[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,6 +68,7 @@ export interface GarnishmentInstallment {
   amount: number;
   checkNumber?: string;
   notes?: string;
+  attachments: GarnishmentDocument[];
   createdAt: Date;
 }
 

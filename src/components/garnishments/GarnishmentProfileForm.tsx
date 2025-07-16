@@ -1,45 +1,41 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useFinanceStore } from '@/hooks/useFinanceStore';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useFinanceStore } from '@/hooks/useFinanceStore';
+import { toast } from '@/hooks/use-toast';
+import { DocumentUpload } from './DocumentUpload';
+import { GarnishmentDocument } from '@/types/finance';
 
 const formSchema = z.object({
   employee: z.string().min(1, 'Employee is required'),
-  creditor: z.string().min(1, 'Creditor/Case is required'),
-  totalAmountOwed: z.number().min(0.01, 'Total amount owed must be greater than 0'),
+  creditor: z.string().min(1, 'Creditor is required'),
+  courtDistrict: z.string().min(1, 'Court district is required'),
+  caseNumber: z.string().min(1, 'Case number is required'),
+  lawFirm: z.string().min(1, 'Law firm/collection company is required'),
+  totalAmountOwed: z.number().min(0.01, 'Amount must be greater than 0'),
   notes: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
 export function GarnishmentProfileForm() {
-  const { addGarnishmentProfile, employees } = useFinanceStore();
-  const { toast } = useToast();
-
+  const { employees, addGarnishmentProfile } = useFinanceStore();
+  const [documents, setDocuments] = useState<GarnishmentDocument[]>([]);
+  
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       employee: '',
       creditor: '',
+      courtDistrict: '',
+      caseNumber: '',
+      lawFirm: '',
       totalAmountOwed: 0,
       notes: '',
     },
@@ -49,21 +45,21 @@ export function GarnishmentProfileForm() {
     addGarnishmentProfile({
       employee: data.employee,
       creditor: data.creditor,
+      courtDistrict: data.courtDistrict,
+      caseNumber: data.caseNumber,
+      lawFirm: data.lawFirm,
       totalAmountOwed: data.totalAmountOwed,
-      notes: data.notes || undefined,
+      notes: data.notes,
+      attachments: documents,
     });
-
+    
     toast({
-      title: 'Garnishment Profile Created',
-      description: `Profile created for ${data.employee} - ${data.creditor}.`,
+      title: "Garnishment Profile Created",
+      description: `Profile for ${data.employee} has been created successfully.`,
     });
 
-    form.reset({
-      employee: '',
-      creditor: '',
-      totalAmountOwed: 0,
-      notes: '',
-    });
+    form.reset();
+    setDocuments([]);
   };
 
   return (
@@ -100,9 +96,51 @@ export function GarnishmentProfileForm() {
             name="creditor"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Creditor / Case</FormLabel>
+                <FormLabel>Original Creditor</FormLabel>
                 <FormControl>
-                  <Input placeholder="Creditor name or case number" {...field} />
+                  <Input placeholder="Enter original creditor name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="courtDistrict"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Court District</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter court district information" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="caseNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Case Number</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter legal case number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="lawFirm"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Law Firm / Collection Company</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter law firm or collection company name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -119,7 +157,6 @@ export function GarnishmentProfileForm() {
                   <Input
                     type="number"
                     step="0.01"
-                    min="0"
                     placeholder="0.00"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -136,16 +173,24 @@ export function GarnishmentProfileForm() {
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes (Optional)</FormLabel>
+              <FormLabel>Notes</FormLabel>
               <FormControl>
-                <Textarea placeholder="Additional notes about this garnishment" {...field} />
+                <Textarea 
+                  placeholder="Additional notes or comments"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full shadow-button">
+        <DocumentUpload
+          documents={documents}
+          onDocumentsChange={setDocuments}
+        />
+
+        <Button type="submit" className="w-full">
           Create Garnishment Profile
         </Button>
       </form>

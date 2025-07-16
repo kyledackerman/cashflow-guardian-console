@@ -4,8 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { LoginDialog } from "./components/auth/LoginDialog";
+import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { AuthPage } from "./components/auth/AuthPage";
 import Index from "./pages/Index";
 import PettyCash from "./pages/PettyCash";
 import Employees from "./pages/Employees";
@@ -21,14 +22,23 @@ const AppContent = () => {
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Layout />}>
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
             <Route index element={<Index />} />
             <Route path="petty-cash" element={<PettyCash />} />
             <Route path="employees" element={<Employees />} />
             <Route path="loans" element={<EmployeeLoans />} />
             <Route path="garnishments" element={<Garnishments />} />
           </Route>
-          <Route path="loan-request" element={<EmployeeLoanRequest />} />
+          <Route path="loan-request" element={
+            <ProtectedRoute>
+              <EmployeeLoanRequest />
+            </ProtectedRoute>
+          } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -42,9 +52,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AuthProvider>
+      <SupabaseAuthProvider>
         <AppContent />
-      </AuthProvider>
+      </SupabaseAuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

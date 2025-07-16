@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Loader2, Shield } from 'lucide-react';
@@ -22,7 +22,6 @@ export const AuthPage = () => {
   const [signUpEmail, setSignUpEmail] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
   const [signUpName, setSignUpName] = useState('');
-  const [signUpRole, setSignUpRole] = useState('employee');
 
   // Redirect if already authenticated and role validation complete
   useEffect(() => {
@@ -60,7 +59,7 @@ export const AuthPage = () => {
     if (!signUpEmail || !signUpPassword || !signUpName) return;
 
     setIsSubmitting(true);
-    const { error } = await signUp(signUpEmail, signUpPassword, signUpName, signUpRole);
+    const { error } = await signUp(signUpEmail, signUpPassword, signUpName);
     setIsSubmitting(false);
 
     // Don't navigate on sign up - user needs to confirm email
@@ -79,8 +78,8 @@ export const AuthPage = () => {
           </CardDescription>
           <div className="mt-4 p-3 bg-muted rounded-md">
             <p className="text-sm text-muted-foreground">
-              <strong>Note:</strong> Only management and admin users can log in. 
-              Employees can register for record-keeping purposes.
+              <strong>Security Note:</strong> New accounts start with employee privileges. 
+              Contact your administrator for role upgrades.
             </p>
           </div>
         </CardHeader>
@@ -168,18 +167,11 @@ export const AuthPage = () => {
                     minLength={6}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-role">Role</Label>
-                  <Select value={signUpRole} onValueChange={setSignUpRole}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="employee">Employee</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="p-3 bg-muted rounded-md">
+                  <p className="text-sm text-muted-foreground">
+                    All new accounts are created with Employee role for security. 
+                    Role upgrades require administrator approval.
+                  </p>
                 </div>
                 <Button 
                   type="submit" 

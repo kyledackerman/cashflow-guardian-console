@@ -8,7 +8,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   roleValidating: boolean;
-  signUp: (email: string, password: string, name: string, role?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
@@ -139,7 +139,7 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
     };
   }, [toast]);
 
-  const signUp = async (email: string, password: string, name: string, role: string = 'employee') => {
+  const signUp = async (email: string, password: string, name: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
@@ -149,8 +149,8 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            name,
-            role
+            name
+            // Role is now automatically set to 'employee' in the database trigger
           }
         }
       });
@@ -179,8 +179,33 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
     }
   };
 
+  // Rate limiting state
+  const [lastSignInAttempt, setLastSignInAttempt] = useState(0);
+  const [signInAttempts, setSignInAttempts] = useState(0);
+
   const signIn = async (email: string, password: string) => {
     try {
+      // Basic rate limiting: max 5 attempts per minute
+      const now = Date.now();
+      const timeSinceLastAttempt = now - lastSignInAttempt;
+      
+      if (timeSinceLastAttempt < 60000 && signInAttempts >= 5) {
+        toast({
+          title: "Too Many Attempts",
+          description: "Please wait a minute before trying again.",
+          variant: "destructive"
+        });
+        return { error: { message: "Rate limited" } };
+      }
+      
+      // Reset attempts if more than a minute has passed
+      if (timeSinceLastAttempt >= 60000) {
+        setSignInAttempts(0);
+      }
+      
+      setLastSignInAttempt(now);
+      setSignInAttempts(prev => prev + 1);
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password

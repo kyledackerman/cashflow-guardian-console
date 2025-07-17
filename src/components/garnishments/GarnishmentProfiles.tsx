@@ -80,10 +80,10 @@ export function GarnishmentProfiles() {
                   <TableHead>Court</TableHead>
                   <TableHead>Case #</TableHead>
                   <TableHead>Law Firm</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Total Owed</TableHead>
                   <TableHead>Paid</TableHead>
                   <TableHead>Balance</TableHead>
-                  <TableHead>Docs</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -95,6 +95,14 @@ export function GarnishmentProfiles() {
                     <TableCell className="text-sm max-w-[100px] truncate">{profile.court_district}</TableCell>
                     <TableCell className="text-sm">{profile.case_number}</TableCell>
                     <TableCell className="text-sm max-w-[120px] truncate">{profile.law_firm}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={profile.status === 'completed' ? 'default' : profile.status === 'suspended' ? 'secondary' : 'destructive'}
+                        className={profile.status === 'completed' ? 'bg-success text-success-foreground' : ''}
+                      >
+                        {profile.status || 'active'}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{formatCurrency(Number(profile.total_amount_owed))}</TableCell>
                     <TableCell className="text-primary">
                       {formatCurrency(Number(profile.amount_paid_so_far))}
@@ -105,11 +113,6 @@ export function GarnishmentProfiles() {
                         className={Number(profile.balance_remaining || 0) > 0 ? '' : 'bg-success text-success-foreground'}
                       >
                         {formatCurrency(Number(profile.balance_remaining || 0))}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant="secondary" className="text-xs">
-                        0
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -178,6 +181,15 @@ export function GarnishmentProfiles() {
                     <CardTitle className="text-base">Financial Summary</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Status:</span>
+                      <Badge 
+                        variant={selectedProfileData.profile.status === 'completed' ? 'default' : selectedProfileData.profile.status === 'suspended' ? 'secondary' : 'destructive'}
+                        className={selectedProfileData.profile.status === 'completed' ? 'bg-success text-success-foreground' : ''}
+                      >
+                        {selectedProfileData.profile.status || 'active'}
+                      </Badge>
+                    </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Total Owed:</span>
                       <span className="font-bold">{formatCurrency(Number(selectedProfileData.profile.total_amount_owed))}</span>

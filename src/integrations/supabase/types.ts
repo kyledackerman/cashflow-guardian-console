@@ -420,6 +420,7 @@ export type Database = {
           id: string
           law_firm: string
           notes: string | null
+          status: string | null
           total_amount_owed: number
           updated_at: string
         }
@@ -436,6 +437,7 @@ export type Database = {
           id?: string
           law_firm: string
           notes?: string | null
+          status?: string | null
           total_amount_owed: number
           updated_at?: string
         }
@@ -452,6 +454,7 @@ export type Database = {
           id?: string
           law_firm?: string
           notes?: string | null
+          status?: string | null
           total_amount_owed?: number
           updated_at?: string
         }

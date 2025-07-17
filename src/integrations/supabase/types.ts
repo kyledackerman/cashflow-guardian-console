@@ -652,9 +652,15 @@ export type Database = {
         Returns: undefined
       }
       user_has_permission: {
-        Args: {
-          permission_name: Database["public"]["Enums"]["employee_permission"]
-        }
+        Args:
+          | {
+              permission_name: Database["public"]["Enums"]["employee_permission"]
+            }
+          | { permission_name: string }
+        Returns: boolean
+      }
+      user_has_role: {
+        Args: { required_role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
       }
     }

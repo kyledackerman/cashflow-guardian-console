@@ -42,6 +42,7 @@ export const useGarnishmentDocuments = () => {
     file: File,
     profileId?: string,
     installmentId?: string,
+    category?: string,
     description?: string
   ): Promise<GarnishmentDocument | null> => {
     try {
@@ -64,6 +65,7 @@ export const useGarnishmentDocuments = () => {
         storage_path: uploadData.path,
         profile_id: profileId || null,
         installment_id: installmentId || null,
+        category: (category as any) || 'other',
         description: description || null,
       };
 

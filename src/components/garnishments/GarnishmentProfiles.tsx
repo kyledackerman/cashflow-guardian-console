@@ -27,6 +27,9 @@ import { Download, FileText, Search, Filter, X, Eye, Edit } from 'lucide-react';
 import { StatusManagementButtons } from './StatusManagementButtons';
 import { InstallmentEditDialog } from './InstallmentEditDialog';
 import { AuditTrail } from './AuditTrail';
+import { DocumentUpload } from './DocumentUpload';
+import { CourtReportGenerator } from './CourtReportGenerator';
+import { ComplianceStatus } from './ComplianceStatus';
 
 export function GarnishmentProfiles() {
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useGarnishmentProfiles();
@@ -242,6 +245,7 @@ export function GarnishmentProfiles() {
                   <TableHead>Case #</TableHead>
                   <TableHead>Law Firm</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Compliance</TableHead>
                   <TableHead>Total Owed</TableHead>
                   <TableHead>Paid</TableHead>
                   <TableHead>Balance</TableHead>
@@ -263,6 +267,9 @@ export function GarnishmentProfiles() {
                       >
                         {profile.status || 'active'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <ComplianceStatus profile={profile} />
                     </TableCell>
                     <TableCell>{formatCurrency(Number(profile.total_amount_owed))}</TableCell>
                     <TableCell className="text-primary">
@@ -381,7 +388,14 @@ export function GarnishmentProfiles() {
                 </Card>
               </div>
 
-              {/* Documents - Note: Document handling needs to be implemented for Supabase Storage */}
+              {/* Court Reports Generator */}
+              <CourtReportGenerator 
+                profile={selectedProfileData.profile}
+                installments={selectedProfileData.installments}
+              />
+
+              {/* Document Upload */}
+              <DocumentUpload profileId={selectedProfileData.profile.id} />
 
               {/* Installment History */}
               {selectedProfileData.installments.length > 0 ? (

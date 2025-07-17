@@ -321,6 +321,7 @@ export type Database = {
       }
       garnishment_documents: {
         Row: {
+          category: Database["public"]["Enums"]["document_category"] | null
           description: string | null
           file_name: string
           file_size: number
@@ -333,6 +334,7 @@ export type Database = {
           uploaded_by: string | null
         }
         Insert: {
+          category?: Database["public"]["Enums"]["document_category"] | null
           description?: string | null
           file_name: string
           file_size: number
@@ -345,6 +347,7 @@ export type Database = {
           uploaded_by?: string | null
         }
         Update: {
+          category?: Database["public"]["Enums"]["document_category"] | null
           description?: string | null
           file_name?: string
           file_size?: number
@@ -465,6 +468,8 @@ export type Database = {
           amount_paid_so_far: number
           balance_remaining: number | null
           case_number: string
+          compliance_notes: string | null
+          compliance_status: string | null
           court_district: string
           created_at: string
           created_by: string | null
@@ -473,6 +478,7 @@ export type Database = {
           employee_name: string
           id: string
           law_firm: string
+          next_due_date: string | null
           notes: string | null
           status: string | null
           total_amount_owed: number
@@ -482,6 +488,8 @@ export type Database = {
           amount_paid_so_far?: number
           balance_remaining?: number | null
           case_number: string
+          compliance_notes?: string | null
+          compliance_status?: string | null
           court_district: string
           created_at?: string
           created_by?: string | null
@@ -490,6 +498,7 @@ export type Database = {
           employee_name: string
           id?: string
           law_firm: string
+          next_due_date?: string | null
           notes?: string | null
           status?: string | null
           total_amount_owed: number
@@ -499,6 +508,8 @@ export type Database = {
           amount_paid_so_far?: number
           balance_remaining?: number | null
           case_number?: string
+          compliance_notes?: string | null
+          compliance_status?: string | null
           court_district?: string
           created_at?: string
           created_by?: string | null
@@ -507,6 +518,7 @@ export type Database = {
           employee_name?: string
           id?: string
           law_firm?: string
+          next_due_date?: string | null
           notes?: string | null
           status?: string | null
           total_amount_owed?: number
@@ -647,6 +659,12 @@ export type Database = {
       }
     }
     Enums: {
+      document_category:
+        | "court_order"
+        | "service_documentation"
+        | "payment_confirmation"
+        | "correspondence"
+        | "other"
       employee_permission:
         | "VIEW_FINANCES"
         | "EDIT_TRANSACTIONS"
@@ -789,6 +807,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      document_category: [
+        "court_order",
+        "service_documentation",
+        "payment_confirmation",
+        "correspondence",
+        "other",
+      ],
       employee_permission: [
         "VIEW_FINANCES",
         "EDIT_TRANSACTIONS",

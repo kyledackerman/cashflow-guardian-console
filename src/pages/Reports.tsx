@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { format, addMonths, startOfMonth, endOfMonth } from 'date-fns';
-import { Download, TrendingUp, Users, DollarSign, Calendar, FileText } from 'lucide-react';
+import { Download, TrendingUp, Users, DollarSign, Calendar, FileText, Scale } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -395,6 +395,38 @@ export default function Reports() {
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export Summary
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Scale className="h-5 w-5" />
+                  Court Evidence Reports
+                </CardTitle>
+                <CardDescription>
+                  Generate PDF court documents for legal proceedings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm text-muted-foreground mb-4">
+                  <p>• Payment History Reports</p>
+                  <p>• Balance Certification Letters</p>
+                  <p>• Affidavit Templates</p>
+                </div>
+                <Button 
+                  onClick={() => {
+                    toast({
+                      title: "Court Reports Available",
+                      description: "Navigate to Garnishments page and view any profile details to access court report generator."
+                    });
+                  }}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  View in Garnishments
                 </Button>
               </CardContent>
             </Card>

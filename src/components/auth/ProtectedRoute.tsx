@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useSupabaseAuth();
+  const { user, userProfile, loading } = useSupabaseAuth();
 
   if (loading) {
     return (
@@ -20,6 +20,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // If user exists but no profile, show an error message
+  if (user && !userProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold mb-2">Account Setup Required</h2>
+          <p className="text-muted-foreground">Your account needs to be set up by an administrator.</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;

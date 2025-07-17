@@ -66,69 +66,30 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // Cancel any pending validation
-        if (validationAbortController) {
-          validationAbortController.abort();
-        }
-
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        setRoleValidating(false); // Always reset role validating state
 
         if (event === 'SIGNED_IN' && session?.user) {
-          // Create new abort controller for this validation
-          const abortController = new AbortController();
-          setValidationAbortController(abortController);
-          setRoleValidating(true);
-
-          try {
-            const canLogin = await validateUserRole(session.user.id, abortController);
-            
-            // If validation was aborted, don't proceed
-            if (canLogin === null) return;
-
-            // Allow all authenticated users to log in
-            // Role-based permissions are handled at the feature level, not login level
-
-            toast({
-              title: "Welcome back!",
-              description: "You have been successfully signed in."
-            });
-          } catch (error) {
-            console.error('Error checking user permissions:', error);
-            await supabase.auth.signOut();
-            toast({
-              title: "Access Error",
-              description: "Unable to verify account permissions. Please try again.",
-              variant: "destructive"
-            });
-          } finally {
-            if (!abortController.signal.aborted) {
-              setRoleValidating(false);
-              setValidationAbortController(null);
-            }
-          }
-        } else {
-          setRoleValidating(false);
-          setValidationAbortController(null);
+          toast({
+            title: "Welcome back!",
+            description: "You have been successfully signed in."
+          });
         }
       }
     );
 
-    // Check for existing session - simplified to avoid duplicate validation
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      // Role validation will be handled by onAuthStateChange if user is signed in
+      setRoleValidating(false); // Ensure this is always reset
     });
 
     return () => {
       subscription.unsubscribe();
-      // Cleanup any pending validation
-      if (validationAbortController) {
-        validationAbortController.abort();
-      }
     };
   }, [toast]);
 

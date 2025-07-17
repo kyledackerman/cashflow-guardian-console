@@ -33,7 +33,7 @@ const navigation = [
     requiresPermission: 'canManageUsers',
   },
   {
-    name: 'User Loans',
+    name: 'Employee Loans',
     href: '/loans',
     icon: CreditCard,
   },

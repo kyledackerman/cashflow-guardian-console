@@ -167,9 +167,12 @@ export const AuthPage = () => {
                 </div>
                 <div className="p-3 bg-muted rounded-md">
                   <p className="text-sm text-muted-foreground">
-                    All new accounts are created with Employee role for security. 
-                    Role upgrades require administrator approval.
+                    <strong>Role Assignment:</strong>
                   </p>
+                  <ul className="text-sm text-muted-foreground mt-1 space-y-1">
+                    <li>• @custom-maids.co emails → Manager access</li>
+                    <li>• All other emails → Employee access</li>
+                  </ul>
                 </div>
                 <Button 
                   type="submit" 

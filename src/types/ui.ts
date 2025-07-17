@@ -9,10 +9,17 @@ export interface GarnishmentDocument {
   description?: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  active: boolean;
+  role: 'user' | 'manager' | 'admin';
+}
+
+// Backwards compatibility - will be removed in Phase 3
 export interface Employee {
   id: string;
   name: string;
   active: boolean;
-  role?: 'employee' | 'manager' | 'admin';
-  permissions?: string[];
+  role: 'user' | 'manager' | 'admin' | 'employee';
 }

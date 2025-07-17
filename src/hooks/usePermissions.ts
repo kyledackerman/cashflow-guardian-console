@@ -1,47 +1,36 @@
 
 import { Database } from '@/integrations/supabase/types';
 
-type Permission = Database['public']['Enums']['employee_permission'];
+type UserRole = Database['public']['Enums']['user_role'];
 
-export const PERMISSIONS = {
-  VIEW_FINANCES: 'VIEW_FINANCES' as const,
-  EDIT_TRANSACTIONS: 'EDIT_TRANSACTIONS' as const,
-  DELETE_RECORDS: 'DELETE_RECORDS' as const,
-  MANAGE_EMPLOYEES: 'MANAGE_EMPLOYEES' as const,
-  APPROVE_TRANSACTIONS: 'APPROVE_TRANSACTIONS' as const,
-  APPROVE_LARGE_LOANS: 'APPROVE_LARGE_LOANS' as const,
-} as const;
-
+// Backwards compatibility - will be removed in Phase 3
 export const ROLE_PERMISSIONS = {
-  employee: [PERMISSIONS.VIEW_FINANCES],
-  manager: [
-    PERMISSIONS.VIEW_FINANCES,
-    PERMISSIONS.EDIT_TRANSACTIONS,
-    PERMISSIONS.DELETE_RECORDS,
-    PERMISSIONS.MANAGE_EMPLOYEES,
-    PERMISSIONS.APPROVE_TRANSACTIONS,
-  ],
-  admin: [
-    PERMISSIONS.VIEW_FINANCES,
-    PERMISSIONS.EDIT_TRANSACTIONS,
-    PERMISSIONS.DELETE_RECORDS,
-    PERMISSIONS.MANAGE_EMPLOYEES,
-    PERMISSIONS.APPROVE_TRANSACTIONS,
-    PERMISSIONS.APPROVE_LARGE_LOANS,
-  ],
-} as const;
+  employee: ['VIEW_FINANCES'],
+  user: ['VIEW_FINANCES'],
+  manager: ['VIEW_FINANCES', 'EDIT_TRANSACTIONS', 'DELETE_RECORDS', 'APPROVE_TRANSACTIONS'],
+  admin: ['VIEW_FINANCES', 'EDIT_TRANSACTIONS', 'DELETE_RECORDS', 'APPROVE_TRANSACTIONS', 'APPROVE_LARGE_LOANS'],
+} as const satisfies Record<string, string[]>;
 
-export const usePermissions = (userPermissions: Permission[]) => {
-  const hasPermission = (permission: Permission): boolean => {
-    return userPermissions.includes(permission);
+export const usePermissions = (userRole: UserRole) => {
+  const hasRole = (requiredRole: UserRole): boolean => {
+    if (requiredRole === 'user') {
+      return ['user', 'manager', 'admin'].includes(userRole);
+    }
+    if (requiredRole === 'manager') {
+      return ['manager', 'admin'].includes(userRole);
+    }
+    if (requiredRole === 'admin') {
+      return userRole === 'admin';
+    }
+    return false;
   };
 
-  const canEditTransactions = () => hasPermission(PERMISSIONS.EDIT_TRANSACTIONS);
-  const canDeleteRecords = () => hasPermission(PERMISSIONS.DELETE_RECORDS);
-  const canManageEmployees = () => hasPermission(PERMISSIONS.MANAGE_EMPLOYEES);
-  const canApproveTransactions = () => hasPermission(PERMISSIONS.APPROVE_TRANSACTIONS);
-  const canViewFinances = () => hasPermission(PERMISSIONS.VIEW_FINANCES);
-  const canApproveLargeLoans = () => hasPermission(PERMISSIONS.APPROVE_LARGE_LOANS);
+  const canEditTransactions = () => hasRole('manager');
+  const canDeleteRecords = () => hasRole('manager');
+  const canManageUsers = () => hasRole('admin');
+  const canApproveTransactions = () => hasRole('manager');
+  const canViewFinances = () => hasRole('user');
+  const canApproveLargeLoans = () => hasRole('admin');
   
   const canApproveAmount = (amount: number): boolean => {
     if (amount > 500) return canApproveLargeLoans();
@@ -49,10 +38,10 @@ export const usePermissions = (userPermissions: Permission[]) => {
   };
 
   return {
-    hasPermission,
+    hasRole,
     canEditTransactions,
     canDeleteRecords,
-    canManageEmployees,
+    canManageUsers,
     canApproveTransactions,
     canViewFinances,
     canApproveLargeLoans,

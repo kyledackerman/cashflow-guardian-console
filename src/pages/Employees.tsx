@@ -34,7 +34,7 @@ export default function Employees() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [formData, setFormData] = useState({ name: '', active: true, role: 'employee' as 'employee' | 'manager' | 'admin' });
+  const [formData, setFormData] = useState({ name: '', active: true, role: 'employee' as 'employee' | 'user' | 'manager' | 'admin' });
 
   const filteredEmployees = employees.filter(employee =>
     employee.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -62,9 +62,12 @@ export default function Employees() {
       return;
     }
 
+    // Convert 'user' role to 'employee' for backwards compatibility with current database
+    const role = formData.role === 'user' ? 'employee' : formData.role;
     const employeeData = {
       ...formData,
-      permissions: [...ROLE_PERMISSIONS[formData.role]],
+      role: role as 'employee' | 'manager' | 'admin',
+      permissions: [...(ROLE_PERMISSIONS[formData.role] || [])],
     };
 
     if (editingEmployee) {

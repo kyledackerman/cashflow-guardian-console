@@ -99,6 +99,10 @@ export const useGarnishmentProfiles = () => {
     }
   };
 
+  const updateStatus = async (id: string, status: string) => {
+    return updateProfile(id, { status, updated_at: new Date().toISOString() });
+  };
+
   const deleteProfile = async (id: string) => {
     try {
       const { error } = await supabase
@@ -154,6 +158,7 @@ export const useGarnishmentProfiles = () => {
     loading,
     addProfile,
     updateProfile,
+    updateStatus,
     deleteProfile,
     refetch: fetchProfiles
   };

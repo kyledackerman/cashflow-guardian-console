@@ -55,6 +55,50 @@ export type Database = {
           },
         ]
       }
+      bulk_payment_batches: {
+        Row: {
+          batch_date: string
+          created_at: string
+          created_by: string | null
+          created_by_name: string
+          id: string
+          notes: string | null
+          total_amount: number
+          total_payments: number
+          updated_at: string
+        }
+        Insert: {
+          batch_date?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name: string
+          id?: string
+          notes?: string | null
+          total_amount?: number
+          total_payments?: number
+          updated_at?: string
+        }
+        Update: {
+          batch_date?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string
+          id?: string
+          notes?: string | null
+          total_amount?: number
+          total_payments?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bulk_payment_batches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_loan_repayments: {
         Row: {
           amount: number
@@ -339,6 +383,7 @@ export type Database = {
       garnishment_installments: {
         Row: {
           amount: number
+          batch_id: string | null
           check_number: string | null
           created_at: string
           employee_id: string | null
@@ -354,6 +399,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          batch_id?: string | null
           check_number?: string | null
           created_at?: string
           employee_id?: string | null
@@ -369,6 +415,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          batch_id?: string | null
           check_number?: string | null
           created_at?: string
           employee_id?: string | null
@@ -383,6 +430,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "garnishment_installments_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "bulk_payment_batches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "garnishment_installments_employee_id_fkey"
             columns: ["employee_id"]

@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GarnishmentProfiles } from '@/components/garnishments/GarnishmentProfiles';
 import { GarnishmentProfileForm } from '@/components/garnishments/GarnishmentProfileForm';
 import { GarnishmentInstallmentForm } from '@/components/garnishments/GarnishmentInstallmentForm';
+import { BulkPaymentForm } from '@/components/garnishments/BulkPaymentForm';
 
 export default function Garnishments() {
   return (
@@ -13,10 +14,11 @@ export default function Garnishments() {
       </div>
 
       <Tabs defaultValue="profiles" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profiles">Active Garnishments</TabsTrigger>
           <TabsTrigger value="create">Create Profile</TabsTrigger>
           <TabsTrigger value="installment">Add Installment</TabsTrigger>
+          <TabsTrigger value="bulk">Bulk Payments</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profiles" className="space-y-4">
@@ -59,6 +61,10 @@ export default function Garnishments() {
               <GarnishmentInstallmentForm />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="bulk" className="space-y-4">
+          <BulkPaymentForm />
         </TabsContent>
       </Tabs>
     </div>

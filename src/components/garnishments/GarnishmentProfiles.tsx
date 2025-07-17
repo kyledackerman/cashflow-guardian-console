@@ -23,12 +23,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { Download, FileText, Search, Filter, X } from 'lucide-react';
+import { Download, FileText, Search, Filter, X, Eye, Edit } from 'lucide-react';
+import { StatusManagementButtons } from './StatusManagementButtons';
+import { InstallmentEditDialog } from './InstallmentEditDialog';
+import { AuditTrail } from './AuditTrail';
 
 export function GarnishmentProfiles() {
-  const { profiles, loading: profilesLoading } = useGarnishmentProfiles();
+  const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useGarnishmentProfiles();
   const { installments, loading: installmentsLoading } = useGarnishmentInstallments();
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
+  const [editingInstallment, setEditingInstallment] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [balanceFilter, setBalanceFilter] = useState<string>('all');
@@ -273,14 +277,21 @@ export function GarnishmentProfiles() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedProfile(profile.id)}
-                        className="hover-scale"
-                      >
-                        View Schedule
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedProfile(profile.id)}
+                          className="hover-scale"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View Details
+                        </Button>
+                        <StatusManagementButtons 
+                          profile={profile} 
+                          onStatusChange={refetchProfiles}
+                        />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -382,8 +393,9 @@ export function GarnishmentProfiles() {
                         <TableHead>Payroll Date</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Check Number</TableHead>
-                        <TableHead>Notes</TableHead>
-                        <TableHead>Created</TableHead>
+                         <TableHead>Notes</TableHead>
+                         <TableHead>Created</TableHead>
+                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -402,9 +414,19 @@ export function GarnishmentProfiles() {
                               {installment.notes || '-'}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            {format(new Date(installment.created_at), 'MM/dd/yyyy')}
-                          </TableCell>
+                           <TableCell>
+                             {format(new Date(installment.created_at), 'MM/dd/yyyy')}
+                           </TableCell>
+                           <TableCell>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => setEditingInstallment(installment)}
+                             >
+                               <Edit className="h-4 w-4 mr-1" />
+                               Edit
+                             </Button>
+                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -412,13 +434,30 @@ export function GarnishmentProfiles() {
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  No payments recorded yet for this garnishment
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
+                   No payments recorded yet for this garnishment
+                 </div>
+               )}
+
+               {selectedProfileData && (
+                 <div className="mt-6">
+                   <AuditTrail 
+                     recordId={selectedProfileData.profile.id} 
+                     tableName="garnishment_profiles" 
+                   />
+                 </div>
+               )}
+             </div>
+           )}
+         </DialogContent>
+       </Dialog>
+
+       <InstallmentEditDialog
+         installment={editingInstallment}
+         open={!!editingInstallment}
+         onOpenChange={(open) => !open && setEditingInstallment(null)}
+         profileBalance={selectedProfileData?.profile.balance_remaining || 0}
+         profileAmountPaid={selectedProfileData?.profile.amount_paid_so_far || 0}
+       />
+     </>
+   );
+ }

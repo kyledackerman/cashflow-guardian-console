@@ -589,6 +589,33 @@ export type Database = {
           },
         ]
       }
+      users: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -634,6 +661,7 @@ export type Database = {
         | "approved_admin"
         | "rejected"
       transaction_type: "credit" | "debit"
+      user_role: "user" | "manager" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -777,6 +805,7 @@ export const Constants = {
         "rejected",
       ],
       transaction_type: ["credit", "debit"],
+      user_role: ["user", "manager", "admin"],
     },
   },
 } as const

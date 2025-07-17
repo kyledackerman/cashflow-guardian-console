@@ -13,7 +13,7 @@ import { toast } from '@/hooks/use-toast';
 import { DocumentUpload } from './DocumentUpload';
 
 const formSchema = z.object({
-  employee: z.string().min(1, 'Employee is required'),
+  employee: z.string().min(1, 'User is required'),
   creditor: z.string().min(1, 'Creditor is required'),
   courtDistrict: z.string().min(1, 'Court district is required'),
   caseNumber: z.string().min(1, 'Case number is required'),
@@ -105,11 +105,11 @@ export function GarnishmentProfileForm() {
             name="employee"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Employee</FormLabel>
+                <FormLabel>User</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select employee" />
+                      <SelectValue placeholder="Select user" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

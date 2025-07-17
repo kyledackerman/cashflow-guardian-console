@@ -113,7 +113,7 @@ export function GarnishmentProfiles() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Employee</TableHead>
+              <TableHead>User</TableHead>
               <TableHead>Creditor</TableHead>
               <TableHead>Court</TableHead>
               <TableHead>Case #</TableHead>
@@ -158,7 +158,7 @@ export function GarnishmentProfiles() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by employee, creditor, case number, or law firm..."
+              placeholder="Search by user, creditor, case number, or law firm..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -236,7 +236,7 @@ export function GarnishmentProfiles() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee</TableHead>
+                  <TableHead>User</TableHead>
                   <TableHead>Creditor</TableHead>
                   <TableHead>Court</TableHead>
                   <TableHead>Case #</TableHead>
@@ -323,7 +323,7 @@ export function GarnishmentProfiles() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Employee:</span>
+                      <span className="text-muted-foreground">User:</span>
                       <span className="font-medium">{selectedProfileData.profile.employee_name}</span>
                     </div>
                     <div className="flex justify-between">

@@ -335,7 +335,7 @@ export function GarnishmentInstallmentForm() {
         {selectedProfile && (
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-muted p-4 rounded-lg">
-              <div className="text-sm text-muted-foreground">Employee</div>
+              <div className="text-sm text-muted-foreground">User</div>
               <div className="font-medium">{selectedProfile.employee_name}</div>
             </div>
             <div className="bg-muted p-4 rounded-lg">

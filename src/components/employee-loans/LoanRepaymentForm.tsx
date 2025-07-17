@@ -34,7 +34,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
-  employee: z.string().min(1, 'Employee is required'),
+  employee: z.string().min(1, 'User is required'),
   payrollDate: z.date({
     required_error: 'Payroll date is required.',
   }),
@@ -60,7 +60,7 @@ export function LoanRepaymentForm() {
     },
   });
 
-  // Get employees with outstanding loans
+  // Get users with outstanding loans
   const usersWithLoans = users.filter(user => {
     const userWithdrawals = withdrawals.filter(w => w.employee_name === user.name);
     const userRepayments = repayments.filter(r => r.employee_name === user.name);
@@ -72,18 +72,18 @@ export function LoanRepaymentForm() {
     return outstandingBalance > 0;
   });
 
-  const selectedEmployee = form.watch('employee');
-  const getOutstandingBalance = (employeeName: string) => {
-    const employeeWithdrawals = withdrawals.filter(w => w.employee_name === employeeName);
-    const employeeRepayments = repayments.filter(r => r.employee_name === employeeName);
-    
-    const totalWithdrawn = employeeWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
-    const totalRepaid = employeeRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
-    
+  const selectedUser = form.watch('employee');
+  const getOutstandingBalance = (userName: string) => {
+    const userWithdrawals = withdrawals.filter(w => w.employee_name === userName);
+    const userRepayments = repayments.filter(r => r.employee_name === userName);
+
+    const totalWithdrawn = userWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
+    const totalRepaid = userRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
+
     return totalWithdrawn - totalRepaid;
   };
 
-  const outstandingBalance = selectedEmployee ? getOutstandingBalance(selectedEmployee) : 0;
+  const outstandingBalance = selectedUser ? getOutstandingBalance(selectedUser) : 0;
 
   const onSubmit = async (data: FormData) => {
     // Validate repayment doesn't exceed outstanding balance
@@ -134,11 +134,11 @@ export function LoanRepaymentForm() {
             name="employee"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Employee</FormLabel>
+                <FormLabel>User</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select employee" />
+                      <SelectValue placeholder="Select user" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -210,7 +210,7 @@ export function LoanRepaymentForm() {
               <FormItem>
                 <FormLabel>
                   Amount Repaid
-                  {selectedEmployee && (
+                  {selectedUser && (
                     <span className="text-sm text-muted-foreground ml-2">
                       (Max: {formatCurrency(outstandingBalance)})
                     </span>
@@ -233,9 +233,9 @@ export function LoanRepaymentForm() {
           />
         </div>
 
-        {selectedEmployee && (
+        {selectedUser && (
           <div className="bg-muted p-4 rounded-lg">
-            <div className="text-sm text-muted-foreground">Outstanding Balance for {selectedEmployee}</div>
+            <div className="text-sm text-muted-foreground">Outstanding Balance for {selectedUser}</div>
             <div className="text-2xl font-bold text-destructive">
               {formatCurrency(outstandingBalance)}
             </div>
@@ -262,7 +262,7 @@ export function LoanRepaymentForm() {
         <Button 
           type="submit" 
           className="w-full shadow-button"
-          disabled={!selectedEmployee || outstandingBalance <= 0}
+          disabled={!selectedUser || outstandingBalance <= 0}
         >
           Record Repayment
         </Button>

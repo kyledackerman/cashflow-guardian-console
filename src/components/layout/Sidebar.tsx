@@ -23,7 +23,7 @@ const navigation = [
     icon: Users,
   },
   {
-    name: 'Employee Loans',
+    name: 'User Loans',
     href: '/loans',
     icon: Receipt,
   },

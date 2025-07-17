@@ -172,7 +172,7 @@ export const AuthPage = () => {
                   </p>
                   <ul className="text-sm text-muted-foreground mt-1 space-y-1">
                     <li>• @custom-maids.co emails → Manager access</li>
-                    <li>• All other emails → Employee access</li>
+                    <li>• All other emails → User access</li>
                   </ul>
                 </div>
                 <Button 

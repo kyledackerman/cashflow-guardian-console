@@ -3,15 +3,11 @@ import { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role'];
 
-// Backwards compatibility - will be removed in Phase 3
-export const ROLE_PERMISSIONS = {
-  employee: ['VIEW_FINANCES'],
-  user: ['VIEW_FINANCES'],
-  manager: ['VIEW_FINANCES', 'EDIT_TRANSACTIONS', 'DELETE_RECORDS', 'APPROVE_TRANSACTIONS'],
-  admin: ['VIEW_FINANCES', 'EDIT_TRANSACTIONS', 'DELETE_RECORDS', 'APPROVE_TRANSACTIONS', 'APPROVE_LARGE_LOANS'],
-} as const satisfies Record<string, string[]>;
+// Role hierarchy: employee < manager < admin
+// Each role includes all permissions of lower roles
 
 export const usePermissions = (userRole: UserRole) => {
+  // Role hierarchy check: user < manager < admin  
   const hasRole = (requiredRole: UserRole): boolean => {
     if (requiredRole === 'user') {
       return ['user', 'manager', 'admin'].includes(userRole);
@@ -25,16 +21,18 @@ export const usePermissions = (userRole: UserRole) => {
     return false;
   };
 
+  // Simplified role-based permissions
   const canEditTransactions = () => hasRole('manager');
   const canDeleteRecords = () => hasRole('manager');
   const canManageUsers = () => hasRole('admin');
   const canApproveTransactions = () => hasRole('manager');
-  const canViewFinances = () => hasRole('user');
+  const canViewFinances = () => hasRole('user'); // All roles can view
   const canApproveLargeLoans = () => hasRole('admin');
   
+  // Role-based approval limits
   const canApproveAmount = (amount: number): boolean => {
-    if (amount > 500) return canApproveLargeLoans();
-    return canApproveTransactions();
+    if (amount > 500) return canApproveLargeLoans(); // Only admin for large amounts
+    return canApproveTransactions(); // Manager+ for smaller amounts
   };
 
   return {

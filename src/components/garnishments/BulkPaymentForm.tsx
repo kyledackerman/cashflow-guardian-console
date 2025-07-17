@@ -40,7 +40,7 @@ export const BulkPaymentForm = () => {
   const { users } = useUsers();
 
   const downloadTemplate = () => {
-    const csvContent = 'Employee Name,Amount,Check Number,Notes\nJohn Doe,100.00,1234,Payment notes\n';
+    const csvContent = 'User Name,Amount,Check Number,Notes\nJohn Doe,100.00,1234,Payment notes\n';
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -67,10 +67,10 @@ export const BulkPaymentForm = () => {
     const lines = csvText.split('\n').filter(line => line.trim());
     const headers = lines[0].split(',').map(h => h.trim());
     
-    if (!headers.includes('Employee Name') || !headers.includes('Amount')) {
+    if (!headers.includes('User Name') || !headers.includes('Amount')) {
       toast({
         title: "Error",
-        description: "CSV must contain 'Employee Name' and 'Amount' columns",
+        description: "CSV must contain 'User Name' and 'Amount' columns",
         variant: "destructive"
       });
       return;
@@ -80,16 +80,16 @@ export const BulkPaymentForm = () => {
     
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-      const employeeName = values[headers.indexOf('Employee Name')];
+      const userName = values[headers.indexOf('User Name')];
       const amountStr = values[headers.indexOf('Amount')];
       const checkNumber = values[headers.indexOf('Check Number')] || '';
       const notes = values[headers.indexOf('Notes')] || '';
 
-      if (!employeeName || !amountStr) continue;
+      if (!userName || !amountStr) continue;
 
       const amount = parseFloat(amountStr);
       const entry: BulkPaymentEntry = {
-        employeeName,
+        employeeName: userName,
         amount,
         checkNumber,
         notes,
@@ -320,7 +320,7 @@ export const BulkPaymentForm = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee</TableHead>
+                  <TableHead>User</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Check #</TableHead>
                   <TableHead>Status</TableHead>

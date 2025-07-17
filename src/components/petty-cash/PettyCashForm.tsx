@@ -206,11 +206,11 @@ export function PettyCashForm() {
               name="employee"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Employee (Optional)</FormLabel>
+                  <FormLabel>User (Optional)</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select employee" />
+                        <SelectValue placeholder="Select user" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

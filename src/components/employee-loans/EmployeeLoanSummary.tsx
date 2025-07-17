@@ -25,7 +25,7 @@ export function EmployeeLoanSummary() {
   const { users } = useUsers();
   const { withdrawals } = useEmployeeLoanWithdrawals();
   const { repayments } = useEmployeeLoanRepayments();
-  const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -34,7 +34,7 @@ export function EmployeeLoanSummary() {
     }).format(amount);
   };
 
-  const getEmployeeLoanData = () => {
+  const getUserLoanData = () => {
     return users.map(user => {
       const userWithdrawals = withdrawals.filter(w => w.employee_name === user.name);
       const userRepayments = repayments.filter(r => r.employee_name === user.name);
@@ -44,7 +44,7 @@ export function EmployeeLoanSummary() {
       const outstandingBalance = totalWithdrawn - totalRepaid;
 
       return {
-        employee: user.name,
+        user: user.name,
         totalWithdrawn,
         totalRepaid,
         outstandingBalance,
@@ -54,19 +54,19 @@ export function EmployeeLoanSummary() {
     }).filter(data => data.totalWithdrawn > 0 || data.totalRepaid > 0);
   };
 
-  const employeeLoanData = getEmployeeLoanData();
-  const selectedEmployeeData = employeeLoanData.find(data => data.employee === selectedEmployee);
+  const userLoanData = getUserLoanData();
+  const selectedUserData = userLoanData.find(data => data.user === selectedUser);
 
-  const getAllTransactions = (employeeName: string) => {
-    const employeeWithdrawals = withdrawals
-      .filter(w => w.employee_name === employeeName)
+  const getAllTransactions = (userName: string) => {
+    const userWithdrawals = withdrawals
+      .filter(w => w.employee_name === userName)
       .map(w => ({ ...w, type: 'withdrawal' as const }));
     
-    const employeeRepayments = repayments
-      .filter(r => r.employee_name === employeeName)
+    const userRepayments = repayments
+      .filter(r => r.employee_name === userName)
       .map(r => ({ ...r, type: 'repayment' as const, date: r.payroll_date }));
 
-    return [...employeeWithdrawals, ...employeeRepayments].sort((a, b) => 
+    return [...userWithdrawals, ...userRepayments].sort((a, b) => 
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   };
@@ -74,16 +74,16 @@ export function EmployeeLoanSummary() {
   return (
     <>
       <div className="space-y-4">
-        {employeeLoanData.length === 0 ? (
+        {userLoanData.length === 0 ? (
           <div className="text-center text-muted-foreground py-8">
-            No employee loans recorded yet
+            No user loans recorded yet
           </div>
         ) : (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
+                  <TableHead>User Name</TableHead>
                   <TableHead>Total Withdrawn</TableHead>
                   <TableHead>Total Repaid</TableHead>
                   <TableHead>Outstanding Balance</TableHead>
@@ -91,9 +91,9 @@ export function EmployeeLoanSummary() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {employeeLoanData.map((data) => (
-                  <TableRow key={data.employee}>
-                    <TableCell className="font-medium">{data.employee}</TableCell>
+                {userLoanData.map((data) => (
+                  <TableRow key={data.user}>
+                    <TableCell className="font-medium">{data.user}</TableCell>
                     <TableCell className="text-destructive">
                       {formatCurrency(data.totalWithdrawn)}
                     </TableCell>
@@ -112,7 +112,7 @@ export function EmployeeLoanSummary() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setSelectedEmployee(data.employee)}
+                        onClick={() => setSelectedUser(data.user)}
                       >
                         View Details
                       </Button>
@@ -125,38 +125,38 @@ export function EmployeeLoanSummary() {
         )}
       </div>
 
-      {/* Employee Detail Modal */}
-      <Dialog open={!!selectedEmployee} onOpenChange={() => setSelectedEmployee(null)}>
+      {/* User Detail Modal */}
+      <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Loan History - {selectedEmployee}</DialogTitle>
+            <DialogTitle>Loan History - {selectedUser}</DialogTitle>
             <DialogDescription>
-              Complete transaction history for this employee
+              Complete transaction history for this user
             </DialogDescription>
           </DialogHeader>
           
-          {selectedEmployeeData && (
+          {selectedUserData && (
             <div className="space-y-6">
               {/* Summary Cards */}
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-muted p-4 rounded-lg">
                   <div className="text-sm text-muted-foreground">Total Withdrawn</div>
                   <div className="text-2xl font-bold text-destructive">
-                    {formatCurrency(selectedEmployeeData.totalWithdrawn)}
+                    {formatCurrency(selectedUserData.totalWithdrawn)}
                   </div>
                 </div>
                 <div className="bg-muted p-4 rounded-lg">
                   <div className="text-sm text-muted-foreground">Total Repaid</div>
                   <div className="text-2xl font-bold text-success">
-                    {formatCurrency(selectedEmployeeData.totalRepaid)}
+                    {formatCurrency(selectedUserData.totalRepaid)}
                   </div>
                 </div>
                 <div className="bg-muted p-4 rounded-lg">
                   <div className="text-sm text-muted-foreground">Outstanding Balance</div>
                   <div className={`text-2xl font-bold ${
-                    selectedEmployeeData.outstandingBalance > 0 ? 'text-destructive' : 'text-success'
+                    selectedUserData.outstandingBalance > 0 ? 'text-destructive' : 'text-success'
                   }`}>
-                    {formatCurrency(selectedEmployeeData.outstandingBalance)}
+                    {formatCurrency(selectedUserData.outstandingBalance)}
                   </div>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export function EmployeeLoanSummary() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {getAllTransactions(selectedEmployee).map((transaction, index) => (
+                    {getAllTransactions(selectedUser).map((transaction, index) => (
                       <TableRow key={`${transaction.type}-${transaction.id}`}>
                         <TableCell>
                           {format(new Date(transaction.date), 'MM/dd/yyyy')}

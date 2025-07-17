@@ -61,7 +61,7 @@ export function PettyCashTable() {
     });
   }, [transactions, filters]);
 
-  const uniqueEmployees = Array.from(
+  const uniqueUsers = Array.from(
     new Set(transactions.map(t => t.employee_name).filter(Boolean))
   );
 
@@ -112,13 +112,13 @@ export function PettyCashTable() {
           onValueChange={(value) => setFilters(prev => ({ ...prev, employee: value }))}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Employees" />
+            <SelectValue placeholder="All Users" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Employees</SelectItem>
-            {uniqueEmployees.map((employee) => (
-              <SelectItem key={employee} value={employee!}>
-                {employee}
+            <SelectItem value="all">All Users</SelectItem>
+            {uniqueUsers.map((user) => (
+              <SelectItem key={user} value={user!}>
+                {user}
               </SelectItem>
             ))}
           </SelectContent>
@@ -186,7 +186,7 @@ export function PettyCashTable() {
               <TableHead>Date</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Amount</TableHead>
-              <TableHead>Employee</TableHead>
+              <TableHead>User</TableHead>
               <TableHead>Purpose</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>

@@ -33,7 +33,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
-  employee: z.string().min(1, 'Employee is required'),
+  employee: z.string().min(1, 'User is required'),
   date: z.date({
     required_error: 'Date is required.',
   }),
@@ -108,11 +108,11 @@ export function LoanWithdrawalForm() {
             name="employee"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Employee</FormLabel>
+                <FormLabel>User</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select employee" />
+                      <SelectValue placeholder="Select user" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

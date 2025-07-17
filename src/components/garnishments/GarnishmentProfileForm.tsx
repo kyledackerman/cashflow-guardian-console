@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useUsers } from '@/hooks/useUsers';
 import { toast } from '@/hooks/use-toast';
 import { DocumentUpload } from './DocumentUpload';
 
@@ -25,7 +25,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function GarnishmentProfileForm() {
-  const { employees, loading: employeesLoading } = useEmployees();
+  const { users, loading: usersLoading } = useUsers();
   const { addProfile, loading: profilesLoading } = useGarnishmentProfiles();
   const [createdProfileId, setCreatedProfileId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

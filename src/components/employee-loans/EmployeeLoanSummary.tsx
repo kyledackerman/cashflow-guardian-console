@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useEmployeeLoanWithdrawals } from '@/hooks/useEmployeeLoanWithdrawals';
 import { useEmployeeLoanRepayments } from '@/hooks/useEmployeeLoanRepayments';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useUsers } from '@/hooks/useUsers';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -22,7 +22,7 @@ import {
 import { format } from 'date-fns';
 
 export function EmployeeLoanSummary() {
-  const { employees } = useEmployees();
+  const { users } = useUsers();
   const { withdrawals } = useEmployeeLoanWithdrawals();
   const { repayments } = useEmployeeLoanRepayments();
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
@@ -83,7 +83,7 @@ export function EmployeeLoanSummary() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee</TableHead>
+                  <TableHead>User</TableHead>
                   <TableHead>Total Withdrawn</TableHead>
                   <TableHead>Total Repaid</TableHead>
                   <TableHead>Outstanding Balance</TableHead>

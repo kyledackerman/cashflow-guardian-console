@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
 import { useGarnishmentInstallments } from '@/hooks/useGarnishmentInstallments';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useUsers } from '@/hooks/useUsers';
 import { cn } from '@/lib/utils';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,7 @@ type FormData = z.infer<typeof formSchema>;
 export function GarnishmentInstallmentForm() {
   const { profiles, loading: profilesLoading } = useGarnishmentProfiles();
   const { installments, addInstallment, loading: installmentsLoading } = useGarnishmentInstallments();
-  const { employees, loading: employeesLoading } = useEmployees();
+  const { users, loading: usersLoading } = useUsers();
   const { toast } = useToast();
   const { user } = useSupabaseAuth();
   const [createdInstallmentId, setCreatedInstallmentId] = useState<string | null>(null);

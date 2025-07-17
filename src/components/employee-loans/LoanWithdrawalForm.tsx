@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useEmployeeLoanWithdrawals } from '@/hooks/useEmployeeLoanWithdrawals';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useUsers } from '@/hooks/useUsers';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +56,7 @@ const approvers = [
 
 export function LoanWithdrawalForm() {
   const { addWithdrawal } = useEmployeeLoanWithdrawals();
-  const { employees } = useEmployees();
+  const { users } = useUsers();
   const { toast } = useToast();
 
   const form = useForm<FormData>({

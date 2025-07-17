@@ -7,7 +7,6 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  roleValidating: boolean;
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -32,35 +31,9 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [roleValidating, setRoleValidating] = useState(false);
-  const [validationAbortController, setValidationAbortController] = useState<AbortController | null>(null);
   const { toast } = useToast();
 
-  // Helper function to validate user role with abort controller
-  const validateUserRole = async (userId: string, abortController: AbortController) => {
-    try {
-      const { data: canLogin, error: rpcError } = await supabase.rpc('can_user_login', {
-        user_id: userId
-      });
-
-      // Check if validation was aborted
-      if (abortController.signal.aborted) {
-        return null;
-      }
-
-      if (rpcError) {
-        console.error('RPC error:', rpcError);
-        throw rpcError;
-      }
-
-      return canLogin;
-    } catch (error) {
-      if (abortController.signal.aborted) {
-        return null;
-      }
-      throw error;
-    }
-  };
+  // Role validation is now handled by RLS policies and the simplified role system
 
   useEffect(() => {
     // Set up auth state listener
@@ -69,7 +42,6 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        setRoleValidating(false); // Always reset role validating state
 
         if (event === 'SIGNED_IN' && session?.user) {
           toast({
@@ -85,7 +57,6 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      setRoleValidating(false); // Ensure this is always reset
     });
 
     return () => {
@@ -104,7 +75,7 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
           emailRedirectTo: redirectUrl,
           data: {
             name
-            // Role is now automatically set to 'employee' in the database trigger
+            // Role is now automatically set to 'user' in the database trigger
           }
         }
       });
@@ -174,7 +145,6 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
         return { error };
       }
 
-      // Role validation is now handled in onAuthStateChange to avoid redundancy
       return { error: null };
     } catch (error: any) {
       toast({
@@ -208,7 +178,6 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
     user,
     session,
     loading,
-    roleValidating,
     signUp,
     signIn,
     signOut,

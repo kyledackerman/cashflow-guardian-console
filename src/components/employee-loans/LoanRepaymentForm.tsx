@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useEmployeeLoanRepayments } from '@/hooks/useEmployeeLoanRepayments';
 import { useEmployeeLoanWithdrawals } from '@/hooks/useEmployeeLoanWithdrawals';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useUsers } from '@/hooks/useUsers';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,7 +47,7 @@ type FormData = z.infer<typeof formSchema>;
 export function LoanRepaymentForm() {
   const { addRepayment, repayments } = useEmployeeLoanRepayments();
   const { withdrawals } = useEmployeeLoanWithdrawals();
-  const { employees } = useEmployees();
+  const { users } = useUsers();
   const { toast } = useToast();
 
   const form = useForm<FormData>({

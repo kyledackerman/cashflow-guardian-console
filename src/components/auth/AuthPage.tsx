@@ -11,7 +11,7 @@ import { Loader2, Shield } from 'lucide-react';
 
 export const AuthPage = () => {
   const navigate = useNavigate();
-  const { signIn, signUp, user, loading, roleValidating } = useSupabaseAuth();
+  const { signIn, signUp, user, loading } = useSupabaseAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form states for sign in

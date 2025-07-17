@@ -10,7 +10,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { AuthPage } from "./components/auth/AuthPage";
 import Index from "./pages/Index";
 import PettyCash from "./pages/PettyCash";
-import Employees from "./pages/Employees";
+import Users from "./pages/Users";
 import EmployeeLoans from "./pages/EmployeeLoans";
 import EmployeeLoanRequest from "./pages/EmployeeLoanRequest";
 import Garnishments from "./pages/Garnishments";
@@ -31,7 +31,7 @@ const AppContent = () => {
           }>
             <Route index element={<Index />} />
             <Route path="petty-cash" element={<PettyCash />} />
-            <Route path="employees" element={<Employees />} />
+            <Route path="users" element={<Users />} />
             <Route path="loans" element={<EmployeeLoans />} />
             <Route path="garnishments" element={<Garnishments />} />
           </Route>

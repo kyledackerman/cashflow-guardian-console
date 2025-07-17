@@ -18,8 +18,8 @@ const navigation = [
     icon: DollarSign,
   },
   {
-    name: 'Employees',
-    href: '/employees',
+    name: 'Users',
+    href: '/users',
     icon: Users,
   },
   {

@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import * as SwitchPrimitives from "@radix-ui/react-switch";
 import { usePettyCashTransactions } from '@/hooks/usePettyCashTransactions';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useUsers } from '@/hooks/useUsers';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,7 +61,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export function PettyCashForm() {
   const { addTransaction } = usePettyCashTransactions();
-  const { employees } = useEmployees();
+  const { users } = useUsers();
   const { toast } = useToast();
 
   const form = useForm<FormData>({

@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
 import { useGarnishmentInstallments } from '@/hooks/useGarnishmentInstallments';
 import { useBulkPaymentBatches } from '@/hooks/useBulkPaymentBatches';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useUsers } from '@/hooks/useUsers';
 import { supabase } from '@/integrations/supabase/client';
 
 interface BulkPaymentEntry {
@@ -37,7 +37,7 @@ export const BulkPaymentForm = () => {
   const { profiles } = useGarnishmentProfiles();
   const { addInstallment } = useGarnishmentInstallments();
   const { createBatch } = useBulkPaymentBatches();
-  const { employees } = useEmployees();
+  const { users } = useUsers();
 
   const downloadTemplate = () => {
     const csvContent = 'Employee Name,Amount,Check Number,Notes\nJohn Doe,100.00,1234,Payment notes\n';

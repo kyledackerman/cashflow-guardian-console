@@ -7,10 +7,10 @@ type UserRole = Database['public']['Enums']['user_role'];
 // Each role includes all permissions of lower roles
 
 export const usePermissions = (userRole: UserRole) => {
-  // Role hierarchy check: user < manager < admin  
+  // Role hierarchy check: employee < manager < admin  
   const hasRole = (requiredRole: UserRole): boolean => {
-    if (requiredRole === 'user') {
-      return ['user', 'manager', 'admin'].includes(userRole);
+    if (requiredRole === 'employee') {
+      return ['employee', 'manager', 'admin'].includes(userRole);
     }
     if (requiredRole === 'manager') {
       return ['manager', 'admin'].includes(userRole);
@@ -26,7 +26,7 @@ export const usePermissions = (userRole: UserRole) => {
   const canDeleteRecords = () => hasRole('manager');
   const canManageUsers = () => hasRole('admin');
   const canApproveTransactions = () => hasRole('manager');
-  const canViewFinances = () => hasRole('user'); // All roles can view
+  const canViewFinances = () => hasRole('employee'); // All roles can view
   const canApproveLargeLoans = () => hasRole('admin');
   
   // Role-based approval limits

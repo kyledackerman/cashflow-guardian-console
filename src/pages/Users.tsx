@@ -121,7 +121,7 @@ export default function Users() {
 function UserForm({ user, onSave, onCancel }: { user?: any; onSave: (user: any) => void; onCancel: () => void }) {
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    role: user?.role || 'user',
+    role: user?.role || 'employee',
     active: user?.active ?? true
   });
 
@@ -148,7 +148,7 @@ function UserForm({ user, onSave, onCancel }: { user?: any; onSave: (user: any) 
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="user">User</SelectItem>
+            <SelectItem value="employee">Employee</SelectItem>
             <SelectItem value="manager">Manager</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
           </SelectContent>

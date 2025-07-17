@@ -685,7 +685,7 @@ export type Database = {
         | "approved_admin"
         | "rejected"
       transaction_type: "credit" | "debit"
-      user_role: "user" | "manager" | "admin"
+      user_role: "employee" | "manager" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -836,7 +836,7 @@ export const Constants = {
         "rejected",
       ],
       transaction_type: ["credit", "debit"],
-      user_role: ["user", "manager", "admin"],
+      user_role: ["employee", "manager", "admin"],
     },
   },
 } as const

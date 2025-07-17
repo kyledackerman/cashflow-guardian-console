@@ -130,7 +130,7 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
         validationAbortController.abort();
       }
     };
-  }, [toast, validationAbortController]);
+  }, [toast]);
 
   const signUp = async (email: string, password: string, name: string) => {
     try {

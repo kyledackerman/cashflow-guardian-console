@@ -88,6 +88,9 @@ export default function Users() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user information
+            </DialogDescription>
           </DialogHeader>
           <UserForm 
             user={editingUser} 
@@ -101,6 +104,9 @@ export default function Users() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
+            <DialogDescription>
+              Create a new user record
+            </DialogDescription>
           </DialogHeader>
           <UserForm 
             onSave={handleSaveUser} 

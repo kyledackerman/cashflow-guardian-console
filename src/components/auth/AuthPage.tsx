@@ -48,9 +48,7 @@ export const AuthPage = () => {
     setIsSubmitting(true);
     const { error } = await signIn(signInEmail, signInPassword);
     
-    if (!error) {
-      navigate('/');
-    }
+    // Navigation is handled by useEffect when auth state changes
     setIsSubmitting(false);
   };
 

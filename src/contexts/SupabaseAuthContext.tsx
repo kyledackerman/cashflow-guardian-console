@@ -87,15 +87,8 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
             // If validation was aborted, don't proceed
             if (canLogin === null) return;
 
-            if (!canLogin) {
-              await supabase.auth.signOut();
-              toast({
-                title: "Access Restricted",
-                description: "Employee accounts cannot log in. Please contact management for access.",
-                variant: "destructive"
-              });
-              return;
-            }
+            // Allow all authenticated users to log in
+            // Role-based permissions are handled at the feature level, not login level
 
             toast({
               title: "Welcome back!",
@@ -137,7 +130,7 @@ export const SupabaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) 
         validationAbortController.abort();
       }
     };
-  }, [toast]);
+  }, [toast, validationAbortController]);
 
   const signUp = async (email: string, password: string, name: string) => {
     try {

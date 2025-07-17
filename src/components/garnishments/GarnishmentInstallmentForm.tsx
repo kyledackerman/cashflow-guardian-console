@@ -101,6 +101,21 @@ export function GarnishmentInstallmentForm() {
       return;
     }
 
+    // Check for duplicate payment on same payroll date
+    const duplicatePayment = installments.find(
+      i => i.profile_id === data.profileId && 
+           i.payroll_date === data.payrollDate.toISOString().split('T')[0]
+    );
+    
+    if (duplicatePayment) {
+      toast({
+        title: 'Duplicate Payment',
+        description: `A payment already exists for ${selectedProfile.employee_name} on ${format(data.payrollDate, 'PPP')}.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const installmentNumber = getNextInstallmentNumber(data.profileId);
 
     const result = await addInstallment({

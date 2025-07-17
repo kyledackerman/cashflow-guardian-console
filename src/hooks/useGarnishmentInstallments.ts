@@ -40,7 +40,16 @@ export const useGarnishmentInstallments = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific constraint violations with user-friendly messages
+        if (error.message.includes('unique_profile_payroll_date')) {
+          throw new Error('A payment already exists for this employee on the selected payroll date.');
+        }
+        if (error.message.includes('Payment amount') && error.message.includes('exceeds remaining balance')) {
+          throw new Error(error.message);
+        }
+        throw error;
+      }
       
       setInstallments(prev => [data, ...prev]);
       toast({
@@ -52,7 +61,7 @@ export const useGarnishmentInstallments = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to record garnishment installment: " + error.message,
+        description: error.message || "Failed to record garnishment installment",
         variant: "destructive"
       });
       return { data: null, error };

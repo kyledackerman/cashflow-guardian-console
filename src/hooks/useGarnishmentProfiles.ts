@@ -40,7 +40,19 @@ export const useGarnishmentProfiles = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific constraint violations with user-friendly messages
+        if (error.message.includes('unique_case_number')) {
+          throw new Error(`Case number "${profile.case_number}" already exists. Please use a unique case number.`);
+        }
+        if (error.message.includes('Case number is required')) {
+          throw new Error('Case number is required and cannot be empty.');
+        }
+        if (error.message.includes('Creditor name is required')) {
+          throw new Error('Creditor name is required and cannot be empty.');
+        }
+        throw error;
+      }
       
       setProfiles(prev => [data, ...prev]);
       toast({
@@ -52,7 +64,7 @@ export const useGarnishmentProfiles = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to create garnishment profile: " + error.message,
+        description: error.message || "Failed to create garnishment profile",
         variant: "destructive"
       });
       return { data: null, error };

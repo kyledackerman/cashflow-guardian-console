@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
 import { useGarnishmentInstallments } from '@/hooks/useGarnishmentInstallments';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -20,12 +23,43 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { Download, FileText } from 'lucide-react';
+import { Download, FileText, Search, Filter, X } from 'lucide-react';
 
 export function GarnishmentProfiles() {
-  const { profiles } = useGarnishmentProfiles();
-  const { installments } = useGarnishmentInstallments();
+  const { profiles, loading: profilesLoading } = useGarnishmentProfiles();
+  const { installments, loading: installmentsLoading } = useGarnishmentInstallments();
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [balanceFilter, setBalanceFilter] = useState<string>('all');
+
+  // Filtering and search logic
+  const filteredProfiles = useMemo(() => {
+    return profiles.filter(profile => {
+      const matchesSearch = searchTerm === '' || 
+        profile.employee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        profile.creditor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        profile.case_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        profile.law_firm.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesStatus = statusFilter === 'all' || profile.status === statusFilter;
+
+      const balance = Number(profile.balance_remaining || 0);
+      const matchesBalance = balanceFilter === 'all' ||
+        (balanceFilter === 'paid' && balance <= 0) ||
+        (balanceFilter === 'outstanding' && balance > 0);
+
+      return matchesSearch && matchesStatus && matchesBalance;
+    });
+  }, [profiles, searchTerm, statusFilter, balanceFilter]);
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setBalanceFilter('all');
+  };
+
+  const hasActiveFilters = searchTerm !== '' || statusFilter !== 'all' || balanceFilter !== 'all';
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -63,15 +97,138 @@ export function GarnishmentProfiles() {
     return format(nextPayment, 'MM/dd/yyyy');
   };
 
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <div className="space-y-4">
+      <div className="flex gap-4 mb-6">
+        <Skeleton className="h-10 w-80" />
+        <Skeleton className="h-10 w-40" />
+        <Skeleton className="h-10 w-40" />
+      </div>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Employee</TableHead>
+              <TableHead>Creditor</TableHead>
+              <TableHead>Court</TableHead>
+              <TableHead>Case #</TableHead>
+              <TableHead>Law Firm</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Total Owed</TableHead>
+              <TableHead>Paid</TableHead>
+              <TableHead>Balance</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[...Array(3)].map((_, i) => (
+              <TableRow key={i}>
+                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-8 w-24" /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+
+  if (profilesLoading || installmentsLoading) {
+    return <LoadingSkeleton />;
+  }
+
   return (
     <>
-      <div className="space-y-4">
-        {profiles.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            No garnishment profiles created yet
+      <div className="space-y-6">
+        {/* Search and Filter Controls */}
+        <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/30 rounded-lg border">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by employee, creditor, case number, or law firm..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={balanceFilter} onValueChange={setBalanceFilter}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Balance" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Balances</SelectItem>
+                <SelectItem value="outstanding">Outstanding</SelectItem>
+                <SelectItem value="paid">Paid Off</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {hasActiveFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                <X className="h-4 w-4 mr-1" />
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Results Summary */}
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {filteredProfiles.length} of {profiles.length} profiles
+            {hasActiveFilters && <span className="text-primary"> (filtered)</span>}
+          </div>
+          
+          {filteredProfiles.length > 0 && (
+            <div className="text-sm text-muted-foreground">
+              Total Outstanding: {formatCurrency(
+                filteredProfiles.reduce((sum, profile) => sum + Number(profile.balance_remaining || 0), 0)
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Table */}
+        {filteredProfiles.length === 0 ? (
+          <div className="text-center text-muted-foreground py-8 space-y-2">
+            {profiles.length === 0 ? (
+              <>
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                <p className="text-lg">No garnishment profiles created yet</p>
+                <p className="text-sm">Create your first profile to get started</p>
+              </>
+            ) : (
+              <>
+                <Search className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                <p className="text-lg">No profiles match your search</p>
+                <p className="text-sm">Try adjusting your filters or search terms</p>
+              </>
+            )}
           </div>
         ) : (
-          <div className="rounded-md border">
+          <div className="rounded-md border animate-fade-in">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -88,8 +245,8 @@ export function GarnishmentProfiles() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {profiles.map((profile) => (
-                  <TableRow key={profile.id}>
+                {filteredProfiles.map((profile) => (
+                  <TableRow key={profile.id} className="hover-scale">
                     <TableCell className="font-medium">{profile.employee_name}</TableCell>
                     <TableCell>{profile.creditor}</TableCell>
                     <TableCell className="text-sm max-w-[100px] truncate">{profile.court_district}</TableCell>
@@ -120,6 +277,7 @@ export function GarnishmentProfiles() {
                         variant="outline"
                         size="sm"
                         onClick={() => setSelectedProfile(profile.id)}
+                        className="hover-scale"
                       >
                         View Schedule
                       </Button>

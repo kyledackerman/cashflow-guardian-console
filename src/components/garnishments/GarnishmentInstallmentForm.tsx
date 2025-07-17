@@ -50,12 +50,13 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function GarnishmentInstallmentForm() {
-  const { profiles } = useGarnishmentProfiles();
-  const { installments, addInstallment } = useGarnishmentInstallments();
-  const { employees } = useEmployees();
+  const { profiles, loading: profilesLoading } = useGarnishmentProfiles();
+  const { installments, addInstallment, loading: installmentsLoading } = useGarnishmentInstallments();
+  const { employees, loading: employeesLoading } = useEmployees();
   const { toast } = useToast();
   const { user } = useSupabaseAuth();
   const [createdInstallmentId, setCreatedInstallmentId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Only managers and admins can access this form
   const managersAndAdmins = employees.filter(emp => 
@@ -88,64 +89,88 @@ export function GarnishmentInstallmentForm() {
 
   const onSubmit = async (data: FormData) => {
     if (!selectedProfile) return;
-
-    const remainingBalance = Number(selectedProfile.balance_remaining || 0);
     
-    // Validate amount doesn't exceed remaining balance
-    if (data.amount > remainingBalance) {
+    setIsSubmitting(true);
+    
+    try {
+      const remainingBalance = Number(selectedProfile.balance_remaining || 0);
+      
+      // Validate amount doesn't exceed remaining balance
+      if (data.amount > remainingBalance) {
+        toast({
+          title: 'Invalid Amount',
+          description: `Payment amount cannot exceed remaining balance of $${remainingBalance.toFixed(2)}.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Check for duplicate payment on same payroll date
+      const duplicatePayment = installments.find(
+        i => i.profile_id === data.profileId && 
+             i.payroll_date === data.payrollDate.toISOString().split('T')[0]
+      );
+      
+      if (duplicatePayment) {
+        toast({
+          title: 'Duplicate Payment',
+          description: `A payment already exists for ${selectedProfile.employee_name} on ${format(data.payrollDate, 'PPP')}.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const installmentNumber = getNextInstallmentNumber(data.profileId);
+
+      const result = await addInstallment({
+        profile_id: data.profileId,
+        employee_name: selectedProfile.employee_name,
+        payroll_date: data.payrollDate.toISOString().split('T')[0],
+        installment_number: installmentNumber,
+        amount: data.amount,
+        check_number: data.checkNumber,
+        recorded_by_name: data.recordedBy,
+        notes: data.notes || null,
+      });
+
+      if (!result.error && result.data) {
+        setCreatedInstallmentId(result.data.id);
+        toast({
+          title: 'Installment Added',
+          description: `Payment #${installmentNumber} of $${data.amount.toFixed(2)} recorded for ${selectedProfile.employee_name}. You can now upload documents.`,
+        });
+        
+        form.reset({
+          profileId: '',
+          payrollDate: new Date(),
+          amount: 0,
+          checkNumber: undefined,
+          recordedBy: '',
+          notes: '',
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: 'Invalid Amount',
-        description: `Payment amount cannot exceed remaining balance of $${remainingBalance.toFixed(2)}.`,
+        title: 'Error',
+        description: error.message || 'Failed to add installment payment',
         variant: 'destructive',
       });
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Check for duplicate payment on same payroll date
-    const duplicatePayment = installments.find(
-      i => i.profile_id === data.profileId && 
-           i.payroll_date === data.payrollDate.toISOString().split('T')[0]
-    );
-    
-    if (duplicatePayment) {
-      toast({
-        title: 'Duplicate Payment',
-        description: `A payment already exists for ${selectedProfile.employee_name} on ${format(data.payrollDate, 'PPP')}.`,
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const installmentNumber = getNextInstallmentNumber(data.profileId);
-
-    const result = await addInstallment({
-      profile_id: data.profileId,
-      employee_name: selectedProfile.employee_name,
-      payroll_date: data.payrollDate.toISOString().split('T')[0],
-      installment_number: installmentNumber,
-      amount: data.amount,
-      check_number: data.checkNumber,
-      recorded_by_name: data.recordedBy,
-      notes: data.notes || null,
-    });
-
-    if (!result.error && result.data) {
-      setCreatedInstallmentId(result.data.id);
-      toast({
-        title: 'Installment Added',
-        description: `Payment #${installmentNumber} of $${data.amount.toFixed(2)} recorded for ${selectedProfile.employee_name}. You can now upload documents.`,
-      });
-    }
-
-    form.reset({
-      profileId: '',
-      payrollDate: new Date(),
-      amount: 0,
-      checkNumber: undefined,
-      recordedBy: '',
-      notes: '',
-    });
   };
+
+  // Loading state
+  if (profilesLoading || installmentsLoading || employeesLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading garnishment data...</p>
+        </div>
+      </div>
+    );
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -355,9 +380,16 @@ export function GarnishmentInstallmentForm() {
         <Button 
           type="submit" 
           className="w-full shadow-button"
-          disabled={!selectedProfile}
+          disabled={!selectedProfile || isSubmitting}
         >
-          Add Installment Payment
+          {isSubmitting ? (
+            <>
+              <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+              Processing Payment...
+            </>
+          ) : (
+            'Add Installment Payment'
+          )}
         </Button>
       </form>
     </Form>

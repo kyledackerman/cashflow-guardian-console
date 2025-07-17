@@ -25,9 +25,10 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function GarnishmentProfileForm() {
-  const { employees } = useEmployees();
-  const { addProfile } = useGarnishmentProfiles();
+  const { employees, loading: employeesLoading } = useEmployees();
+  const { addProfile, loading: profilesLoading } = useGarnishmentProfiles();
   const [createdProfileId, setCreatedProfileId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -43,6 +44,8 @@ export function GarnishmentProfileForm() {
   });
 
   const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
+    
     try {
       const employee = employees.find(emp => emp.id === data.employee);
       if (!employee) {
@@ -66,18 +69,32 @@ export function GarnishmentProfileForm() {
           title: "Success",
           description: "Garnishment profile created successfully. You can now upload documents.",
         });
+        
+        form.reset();
       }
-
-      form.reset();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating garnishment profile:', error);
       toast({
         title: "Error",
-        description: "Failed to create garnishment profile",
+        description: error.message || "Failed to create garnishment profile",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  // Loading state
+  if (employeesLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading employee data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -213,8 +230,19 @@ export function GarnishmentProfileForm() {
           )}
         </div>
 
-        <Button type="submit" className="w-full">
-          Create Garnishment Profile
+        <Button 
+          type="submit" 
+          className="w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+              Creating Profile...
+            </>
+          ) : (
+            'Create Garnishment Profile'
+          )}
         </Button>
       </form>
     </Form>

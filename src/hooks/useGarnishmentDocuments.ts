@@ -77,6 +77,20 @@ export const useGarnishmentDocuments = () => {
 
       if (dbError) throw dbError;
 
+      // Log document upload for audit trail
+      await supabase.rpc('log_admin_action', {
+        action_type: 'DOCUMENT_UPLOAD',
+        table_name: 'garnishment_documents',
+        record_id: dbData.id,
+        new_data: {
+          file_name: file.name,
+          category: category || 'other',
+          profile_id: profileId,
+          installment_id: installmentId,
+          description
+        }
+      });
+
       toast({
         title: "Success",
         description: "Document uploaded successfully",
@@ -119,6 +133,14 @@ export const useGarnishmentDocuments = () => {
         .eq('id', documentId);
 
       if (dbError) throw dbError;
+
+      // Log document deletion for audit trail
+      await supabase.rpc('log_admin_action', {
+        action_type: 'DOCUMENT_DELETE',
+        table_name: 'garnishment_documents',
+        record_id: documentId,
+        old_data: { storage_path: document.storage_path }
+      });
 
       setDocuments(prev => prev.filter(doc => doc.id !== documentId));
 

@@ -40,6 +40,19 @@ export const useBulkPaymentBatches = () => {
         .single();
 
       if (error) throw error;
+
+      // Log bulk payment batch creation for audit trail
+      await supabase.rpc('log_admin_action', {
+        action_type: 'BULK_PAYMENT_BATCH_CREATE',
+        table_name: 'bulk_payment_batches',
+        record_id: data.id,
+        new_data: {
+          batch_date: batch.batch_date,
+          total_amount: batch.total_amount,
+          total_payments: batch.total_payments,
+          notes: batch.notes
+        }
+      });
       
       setBatches(prev => [data, ...prev]);
       toast({

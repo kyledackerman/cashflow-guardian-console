@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
+  LayoutDashboard,
   DollarSign, 
   Users, 
-  Receipt, 
+  CreditCard,
+  Scale,
+  BarChart3,
   Menu,
   ChevronLeft,
   ChevronRight
@@ -12,6 +15,11 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const navigation = [
+  {
+    name: 'Dashboard',
+    href: '/',
+    icon: LayoutDashboard,
+  },
   {
     name: 'Petty Cash',
     href: '/petty-cash',
@@ -25,12 +33,17 @@ const navigation = [
   {
     name: 'User Loans',
     href: '/loans',
-    icon: Receipt,
+    icon: CreditCard,
   },
   {
     name: 'Garnishments',
     href: '/garnishments',
-    icon: Menu,
+    icon: Scale,
+  },
+  {
+    name: 'Reports',
+    href: '/reports',
+    icon: BarChart3,
   },
 ];
 

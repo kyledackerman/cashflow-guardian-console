@@ -13,7 +13,9 @@ import PettyCash from "./pages/PettyCash";
 import Users from "./pages/Users";
 import EmployeeLoans from "./pages/EmployeeLoans";
 import EmployeeLoanRequest from "./pages/EmployeeLoanRequest";
+import Reports from "./pages/Reports";
 import Garnishments from "./pages/Garnishments";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +35,7 @@ const AppContent = () => {
             <Route path="petty-cash" element={<PettyCash />} />
             <Route path="users" element={<Users />} />
             <Route path="loans" element={<EmployeeLoans />} />
+            <Route path="reports" element={<Reports />} />
             <Route path="garnishments" element={<Garnishments />} />
           </Route>
           <Route path="loan-request" element={

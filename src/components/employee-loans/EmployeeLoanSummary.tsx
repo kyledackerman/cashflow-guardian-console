@@ -35,21 +35,21 @@ export function EmployeeLoanSummary() {
   };
 
   const getEmployeeLoanData = () => {
-    return employees.map(employee => {
-      const employeeWithdrawals = withdrawals.filter(w => w.employee_name === employee.name);
-      const employeeRepayments = repayments.filter(r => r.employee_name === employee.name);
+    return users.map(user => {
+      const userWithdrawals = withdrawals.filter(w => w.employee_name === user.name);
+      const userRepayments = repayments.filter(r => r.employee_name === user.name);
       
-      const totalWithdrawn = employeeWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
-      const totalRepaid = employeeRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
+      const totalWithdrawn = userWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
+      const totalRepaid = userRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
       const outstandingBalance = totalWithdrawn - totalRepaid;
 
       return {
-        employee: employee.name,
+        employee: user.name,
         totalWithdrawn,
         totalRepaid,
         outstandingBalance,
-        withdrawals: employeeWithdrawals,
-        repayments: employeeRepayments,
+        withdrawals: userWithdrawals,
+        repayments: userRepayments,
       };
     }).filter(data => data.totalWithdrawn > 0 || data.totalRepaid > 0);
   };

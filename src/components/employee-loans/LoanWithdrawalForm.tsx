@@ -116,9 +116,9 @@ export function LoanWithdrawalForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.name}>
-                        {employee.name}
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.name}>
+                        {user.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

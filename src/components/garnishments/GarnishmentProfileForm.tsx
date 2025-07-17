@@ -47,14 +47,14 @@ export function GarnishmentProfileForm() {
     setIsSubmitting(true);
     
     try {
-      const employee = employees.find(emp => emp.id === data.employee);
-      if (!employee) {
-        throw new Error('Employee not found');
+      const user = users.find(u => u.id === data.employee);
+      if (!user) {
+        throw new Error('User not found');
       }
 
       const profile = await addProfile({
         employee_id: data.employee,
-        employee_name: employee.name,
+        employee_name: user.name,
         creditor: data.creditor,
         court_district: data.courtDistrict,
         case_number: data.caseNumber,
@@ -85,12 +85,12 @@ export function GarnishmentProfileForm() {
   };
 
   // Loading state
-  if (employeesLoading) {
+  if (usersLoading) {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading employee data...</p>
+          <p className="text-muted-foreground">Loading user data...</p>
         </div>
       </div>
     );
@@ -113,9 +113,9 @@ export function GarnishmentProfileForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        {employee.name}
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

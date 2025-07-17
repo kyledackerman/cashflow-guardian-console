@@ -61,12 +61,12 @@ export function LoanRepaymentForm() {
   });
 
   // Get employees with outstanding loans
-  const employeesWithLoans = employees.filter(employee => {
-    const employeeWithdrawals = withdrawals.filter(w => w.employee_name === employee.name);
-    const employeeRepayments = repayments.filter(r => r.employee_name === employee.name);
+  const usersWithLoans = users.filter(user => {
+    const userWithdrawals = withdrawals.filter(w => w.employee_name === user.name);
+    const userRepayments = repayments.filter(r => r.employee_name === user.name);
     
-    const totalWithdrawn = employeeWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
-    const totalRepaid = employeeRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
+    const totalWithdrawn = userWithdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
+    const totalRepaid = userRepayments.reduce((sum, r) => sum + Number(r.amount), 0);
     const outstandingBalance = totalWithdrawn - totalRepaid;
 
     return outstandingBalance > 0;
@@ -142,14 +142,14 @@ export function LoanRepaymentForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {employeesWithLoans.length === 0 ? (
+                    {usersWithLoans.length === 0 ? (
                       <div className="py-2 px-3 text-sm text-muted-foreground">
-                        No employees with outstanding loans
+                        No users with outstanding loans
                       </div>
                     ) : (
-                      employeesWithLoans.map((employee) => (
-                        <SelectItem key={employee.id} value={employee.name}>
-                          {employee.name} - {formatCurrency(getOutstandingBalance(employee.name))} outstanding
+                      usersWithLoans.map((user) => (
+                        <SelectItem key={user.id} value={user.name}>
+                          {user.name} - {formatCurrency(getOutstandingBalance(user.name))} outstanding
                         </SelectItem>
                       ))
                     )}

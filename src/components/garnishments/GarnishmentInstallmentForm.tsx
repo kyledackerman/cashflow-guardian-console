@@ -59,8 +59,8 @@ export function GarnishmentInstallmentForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Only managers and admins can access this form
-  const managersAndAdmins = employees.filter(emp => 
-    emp.role === 'manager' || emp.role === 'admin'
+  const managersAndAdmins = users.filter(u => 
+    u.role === 'manager' || u.role === 'admin'
   );
 
   const form = useForm<FormData>({
@@ -161,7 +161,7 @@ export function GarnishmentInstallmentForm() {
   };
 
   // Loading state
-  if (profilesLoading || installmentsLoading || employeesLoading) {
+  if (profilesLoading || installmentsLoading || usersLoading) {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
@@ -304,9 +304,9 @@ export function GarnishmentInstallmentForm() {
                         No managers or admins found
                       </div>
                     ) : (
-                      managersAndAdmins.map((employee) => (
-                        <SelectItem key={employee.id} value={employee.name}>
-                          {employee.name} ({employee.role})
+                      managersAndAdmins.map((user) => (
+                        <SelectItem key={user.id} value={user.name}>
+                          {user.name} ({user.role})
                         </SelectItem>
                       ))
                     )}

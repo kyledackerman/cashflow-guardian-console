@@ -23,19 +23,20 @@ export const AuthPage = () => {
   const [signUpPassword, setSignUpPassword] = useState('');
   const [signUpName, setSignUpName] = useState('');
 
-  // Redirect if already authenticated and role validation complete
+  // Redirect if already authenticated
   useEffect(() => {
-    if (user && !loading && !roleValidating) {
+    if (user && !loading) {
       navigate('/');
     }
-  }, [user, loading, roleValidating, navigate]);
+  }, [user, loading, navigate]);
 
-  if (loading || roleValidating) {
+  // Show loading state during authentication
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col space-y-4">
         <Loader2 className="h-8 w-8 animate-spin" />
         <p className="text-sm text-muted-foreground">
-          {loading ? 'Loading...' : 'Validating access permissions...'}
+          Loading...
         </p>
       </div>
     );

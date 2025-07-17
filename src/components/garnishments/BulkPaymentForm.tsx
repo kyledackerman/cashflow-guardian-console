@@ -179,9 +179,9 @@ export const BulkPaymentForm = () => {
     try {
       // Create batch record
       const { data: { user } } = await supabase.auth.getUser();
-      const currentEmployee = employees.find(e => e.id === user?.id);
+      const currentUser = users.find(u => u.id === user?.id);
       const batchData = {
-        created_by_name: currentEmployee?.name || 'Unknown User',
+        created_by_name: currentUser?.name || 'Unknown User',
         batch_date: payrollDate,
         total_amount: validPayments.reduce((sum, p) => sum + p.amount, 0),
         total_payments: validPayments.length,

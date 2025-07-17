@@ -215,9 +215,9 @@ export function PettyCashForm() {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
-                      {employees.map((employee) => (
-                        <SelectItem key={employee.id} value={employee.name}>
-                          {employee.name}
+                      {users.map((user) => (
+                        <SelectItem key={user.id} value={user.name}>
+                          {user.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

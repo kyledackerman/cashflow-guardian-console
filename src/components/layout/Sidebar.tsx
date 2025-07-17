@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 
 const navigation = [
   {
@@ -26,9 +27,10 @@ const navigation = [
     icon: DollarSign,
   },
   {
-    name: 'Users',
+    name: 'Employees',
     href: '/users',
     icon: Users,
+    requiresPermission: 'canManageUsers',
   },
   {
     name: 'User Loans',
@@ -49,6 +51,12 @@ const navigation = [
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const permissions = useUserPermissions();
+  
+  const filteredNavigation = navigation.filter(item => {
+    if (!item.requiresPermission) return true;
+    return permissions[item.requiresPermission]?.();
+  });
 
   return (
     <div className={cn(
@@ -75,7 +83,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          {navigation.map((item) => (
+          {filteredNavigation.map((item) => (
             <li key={item.name}>
               <NavLink
                 to={item.href}

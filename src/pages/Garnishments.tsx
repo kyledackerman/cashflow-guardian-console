@@ -5,6 +5,7 @@ import { GarnishmentProfiles } from '@/components/garnishments/GarnishmentProfil
 import { GarnishmentProfileForm } from '@/components/garnishments/GarnishmentProfileForm';
 import { GarnishmentInstallmentForm } from '@/components/garnishments/GarnishmentInstallmentForm';
 import { BulkPaymentForm } from '@/components/garnishments/BulkPaymentForm';
+import { CollectionAgencyForm } from '@/components/garnishments/CollectionAgencyForm';
 
 export default function Garnishments() {
   return (
@@ -14,11 +15,12 @@ export default function Garnishments() {
       </div>
 
       <Tabs defaultValue="profiles" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profiles">Active Garnishments</TabsTrigger>
           <TabsTrigger value="create">Create Profile</TabsTrigger>
           <TabsTrigger value="installment">Add Installment</TabsTrigger>
           <TabsTrigger value="bulk">Bulk Payments</TabsTrigger>
+          <TabsTrigger value="agencies">Law Firms & Agencies</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profiles" className="space-y-4">
@@ -65,6 +67,20 @@ export default function Garnishments() {
 
         <TabsContent value="bulk" className="space-y-4">
           <BulkPaymentForm />
+        </TabsContent>
+
+        <TabsContent value="agencies" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Collection Agencies & Law Firms</CardTitle>
+              <CardDescription>
+                Manage your database of creditors, law firms, and collection agencies for lead generation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CollectionAgencyForm />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

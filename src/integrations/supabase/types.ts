@@ -104,34 +104,19 @@ export type Database = {
           active: boolean
           address_line1: string | null
           address_line2: string | null
-          annual_revenue_estimate: number | null
-          business_license: string | null
           city: string | null
           contact_person: string | null
           created_at: string
           email: string | null
-          employee_count: number | null
           fax: string | null
-          founded_year: number | null
           id: string
-          internal_notes: string | null
-          last_contact_date: string | null
-          lead_score: number | null
-          lead_source: string | null
-          max_claim_amount: number | null
-          min_claim_amount: number | null
           name: string
           notes: string | null
           phone: string | null
-          relationship_status: string | null
           social_media_facebook: string | null
           social_media_linkedin: string | null
           social_media_twitter: string | null
-          specializations: string[] | null
           state: string | null
-          success_rate: number | null
-          tax_id: string | null
-          territory: string | null
           type: string
           updated_at: string
           website: string | null
@@ -141,34 +126,19 @@ export type Database = {
           active?: boolean
           address_line1?: string | null
           address_line2?: string | null
-          annual_revenue_estimate?: number | null
-          business_license?: string | null
           city?: string | null
           contact_person?: string | null
           created_at?: string
           email?: string | null
-          employee_count?: number | null
           fax?: string | null
-          founded_year?: number | null
           id?: string
-          internal_notes?: string | null
-          last_contact_date?: string | null
-          lead_score?: number | null
-          lead_source?: string | null
-          max_claim_amount?: number | null
-          min_claim_amount?: number | null
           name: string
           notes?: string | null
           phone?: string | null
-          relationship_status?: string | null
           social_media_facebook?: string | null
           social_media_linkedin?: string | null
           social_media_twitter?: string | null
-          specializations?: string[] | null
           state?: string | null
-          success_rate?: number | null
-          tax_id?: string | null
-          territory?: string | null
           type: string
           updated_at?: string
           website?: string | null
@@ -178,34 +148,19 @@ export type Database = {
           active?: boolean
           address_line1?: string | null
           address_line2?: string | null
-          annual_revenue_estimate?: number | null
-          business_license?: string | null
           city?: string | null
           contact_person?: string | null
           created_at?: string
           email?: string | null
-          employee_count?: number | null
           fax?: string | null
-          founded_year?: number | null
           id?: string
-          internal_notes?: string | null
-          last_contact_date?: string | null
-          lead_score?: number | null
-          lead_source?: string | null
-          max_claim_amount?: number | null
-          min_claim_amount?: number | null
           name?: string
           notes?: string | null
           phone?: string | null
-          relationship_status?: string | null
           social_media_facebook?: string | null
           social_media_linkedin?: string | null
           social_media_twitter?: string | null
-          specializations?: string[] | null
           state?: string | null
-          success_rate?: number | null
-          tax_id?: string | null
-          territory?: string | null
           type?: string
           updated_at?: string
           website?: string | null

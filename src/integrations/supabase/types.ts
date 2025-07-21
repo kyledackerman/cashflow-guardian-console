@@ -720,6 +720,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      sync_users_to_employees: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       user_has_permission: {
         Args:
           | {

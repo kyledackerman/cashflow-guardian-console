@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
 import { useGarnishmentInstallments } from '@/hooks/useGarnishmentInstallments';
-import { useUsers } from '@/hooks/useUsers';
+import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
@@ -52,15 +52,15 @@ type FormData = z.infer<typeof formSchema>;
 export function GarnishmentInstallmentForm() {
   const { profiles, loading: profilesLoading } = useGarnishmentProfiles();
   const { installments, addInstallment, loading: installmentsLoading } = useGarnishmentInstallments();
-  const { users, loading: usersLoading } = useUsers();
+  const { employees, loading: employeesLoading } = useEmployees();
   const { toast } = useToast();
   const { user } = useSupabaseAuth();
   const [createdInstallmentId, setCreatedInstallmentId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Only managers and admins can access this form
-  const managersAndAdmins = users.filter(u => 
-    u.role === 'manager' || u.role === 'admin'
+  const managersAndAdmins = employees.filter(e => 
+    e.role === 'manager' || e.role === 'admin'
   );
 
   const form = useForm<FormData>({
@@ -161,7 +161,7 @@ export function GarnishmentInstallmentForm() {
   };
 
   // Loading state
-  if (profilesLoading || installmentsLoading || usersLoading) {
+  if (profilesLoading || installmentsLoading || employeesLoading) {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
@@ -298,15 +298,15 @@ export function GarnishmentInstallmentForm() {
                       <SelectValue placeholder="Select manager/admin" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                   <SelectContent>
                     {managersAndAdmins.length === 0 ? (
                       <div className="py-2 px-3 text-sm text-muted-foreground">
                         No managers or admins found
                       </div>
                     ) : (
-                      managersAndAdmins.map((user) => (
-                        <SelectItem key={user.id} value={user.name}>
-                          {user.name} ({user.role})
+                      managersAndAdmins.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.name}>
+                          {employee.name} ({employee.role})
                         </SelectItem>
                       ))
                     )}
@@ -335,7 +335,7 @@ export function GarnishmentInstallmentForm() {
         {selectedProfile && (
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-muted p-4 rounded-lg">
-              <div className="text-sm text-muted-foreground">User</div>
+              <div className="text-sm text-muted-foreground">Employee</div>
               <div className="font-medium">{selectedProfile.employee_name}</div>
             </div>
             <div className="bg-muted p-4 rounded-lg">

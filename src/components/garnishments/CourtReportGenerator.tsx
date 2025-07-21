@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,187 +29,315 @@ export const CourtReportGenerator: React.FC<CourtReportGeneratorProps> = ({
 }) => {
   const { toast } = useToast();
 
+  const addCompanyHeader = (doc: jsPDF) => {
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CUSTOM MAIDS CO.', 20, 20);
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Payroll Department', 20, 28);
+    doc.text('Phone: (XXX) XXX-XXXX | Email: payroll@custom-maids.co', 20, 34);
+    
+    // Add horizontal line
+    doc.setLineWidth(0.5);
+    doc.line(20, 40, 190, 40);
+  };
+
+  const addFooter = (doc: jsPDF, pageHeight: number) => {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.text('This document contains confidential payroll information and is for official use only.', 20, pageHeight - 20);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 20, pageHeight - 14);
+    doc.text('Page 1 of 1', 170, pageHeight - 14);
+  };
+
   const generatePaymentHistoryReport = () => {
     const doc = new jsPDF();
-    const currentDate = new Date().toLocaleDateString();
+    const pageHeight = doc.internal.pageSize.height;
     
-    // Header
+    addCompanyHeader(doc);
+    
+    // Document title
     doc.setFontSize(16);
-    doc.text('OFFICIAL PAYMENT HISTORY REPORT', 20, 20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GARNISHMENT PAYMENT HISTORY REPORT', 20, 55);
     
-    doc.setFontSize(12);
-    doc.text(`Generated: ${currentDate}`, 20, 30);
-    doc.text(`Case Number: ${profile.case_number}`, 20, 40);
-    doc.text(`Employee: ${profile.employee_name}`, 20, 50);
-    doc.text(`Creditor: ${profile.creditor}`, 20, 60);
-    doc.text(`Court District: ${profile.court_district}`, 20, 70);
+    // Case information section
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CASE INFORMATION', 20, 70);
     
-    // Summary
-    doc.text('PAYMENT SUMMARY:', 20, 90);
-    doc.text(`Total Amount Owed: $${profile.total_amount_owed}`, 20, 100);
-    doc.text(`Amount Paid to Date: $${profile.amount_paid_so_far}`, 20, 110);
-    doc.text(`Balance Remaining: $${profile.balance_remaining}`, 20, 120);
-    doc.text(`Status: ${profile.status?.toUpperCase()}`, 20, 130);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const caseInfo = [
+      `Case Number: ${profile.case_number}`,
+      `Employee: ${profile.employee_name}`,
+      `Creditor: ${profile.creditor}`,
+      `Court District: ${profile.court_district}`,
+      profile.law_firm ? `Law Firm: ${profile.law_firm}` : null
+    ].filter(Boolean);
     
-    // Payment history table
-    const tableData = installments
-      .sort((a, b) => new Date(a.payroll_date).getTime() - new Date(b.payroll_date).getTime())
-      .map(installment => [
-        new Date(installment.payroll_date).toLocaleDateString(),
-        installment.installment_number.toString(),
-        `$${installment.amount}`,
-        installment.check_number || 'N/A',
-        installment.recorded_by_name || 'Unknown'
-      ]);
-
-    doc.autoTable({
-      startY: 140,
-      head: [['Payment Date', 'Installment #', 'Amount', 'Check #', 'Recorded By']],
-      body: tableData,
-      theme: 'grid',
-      styles: { fontSize: 10 }
+    caseInfo.forEach((info, index) => {
+      doc.text(info, 20, 78 + (index * 6));
     });
     
-    // Footer
-    const pageHeight = doc.internal.pageSize.height;
-    doc.text('This document is certified as accurate and complete.', 20, pageHeight - 30);
-    doc.text('_________________________', 20, pageHeight - 20);
-    doc.text('Authorized Signature', 20, pageHeight - 10);
+    // Financial summary section
+    const summaryY = 78 + (caseInfo.length * 6) + 10;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('FINANCIAL SUMMARY', 20, summaryY);
     
-    doc.save(`Payment_History_${profile.case_number}_${currentDate.replace(/\//g, '-')}.pdf`);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Amount Owed: $${Number(profile.total_amount_owed).toFixed(2)}`, 20, summaryY + 8);
+    doc.text(`Amount Paid to Date: $${Number(profile.amount_paid_so_far).toFixed(2)}`, 20, summaryY + 14);
+    doc.text(`Balance Remaining: $${Number(profile.balance_remaining).toFixed(2)}`, 20, summaryY + 20);
+    doc.text(`Status: ${profile.status?.toUpperCase()}`, 20, summaryY + 26);
+    
+    // Payment history table
+    const tableStartY = summaryY + 40;
+    const sortedInstallments = installments
+      .sort((a, b) => new Date(a.payroll_date).getTime() - new Date(b.payroll_date).getTime());
+    
+    const tableData = sortedInstallments.map(installment => [
+      new Date(installment.payroll_date).toLocaleDateString(),
+      installment.installment_number.toString(),
+      `$${Number(installment.amount).toFixed(2)}`,
+      installment.check_number || 'N/A',
+      installment.recorded_by_name || 'System'
+    ]);
+
+    doc.autoTable({
+      startY: tableStartY,
+      head: [['Payment Date', 'Installment #', 'Amount', 'Check Number', 'Recorded By']],
+      body: tableData,
+      theme: 'grid',
+      styles: { 
+        fontSize: 9,
+        cellPadding: 3
+      },
+      headStyles: {
+        fillColor: [240, 240, 240],
+        textColor: [0, 0, 0],
+        fontStyle: 'bold'
+      }
+    });
+    
+    // Certification section
+    const finalY = (doc as any).lastAutoTable.finalY + 20;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CERTIFICATION', 20, finalY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text('I hereby certify that the above payment history is true and accurate', 20, finalY + 8);
+    doc.text('based on our payroll records maintained in the ordinary course of business.', 20, finalY + 14);
+    
+    doc.text('_________________________________', 20, finalY + 35);
+    doc.text('Authorized Signature', 20, finalY + 42);
+    doc.text('Payroll Administrator', 20, finalY + 48);
+    
+    doc.text('Date: _______________', 120, finalY + 42);
+    
+    addFooter(doc, pageHeight);
+    
+    doc.save(`Payment_History_${profile.case_number}_${new Date().toISOString().split('T')[0]}.pdf`);
     
     toast({
-      title: "Report Generated",
-      description: "Payment history report has been downloaded."
+      title: "Payment History Generated",
+      description: "Professional payment history report has been downloaded."
     });
   };
 
   const generateBalanceCertification = () => {
     const doc = new jsPDF();
+    const pageHeight = doc.internal.pageSize.height;
     const currentDate = new Date().toLocaleDateString();
     
-    // Header
+    addCompanyHeader(doc);
+    
+    // Document title
     doc.setFontSize(16);
-    doc.text('BALANCE CERTIFICATION LETTER', 20, 20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('BALANCE CERTIFICATION LETTER', 20, 55);
     
-    doc.setFontSize(12);
-    doc.text(`Date: ${currentDate}`, 20, 40);
+    // Date
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Date: ${currentDate}`, 20, 70);
     
-    // Body
-    const letterBody = [
+    // Letter content
+    const letterContent = [
       '',
       'TO WHOM IT MAY CONCERN:',
       '',
-      `This letter serves as official certification of the current balance status`,
-      `for the garnishment case referenced below:`,
+      'This letter serves as official certification of the garnishment balance status',
+      'for the case referenced below, maintained in our payroll records.',
       '',
-      `Case Number: ${profile.case_number}`,
-      `Employee: ${profile.employee_name}`,
-      `Creditor: ${profile.creditor}`,
-      `Court District: ${profile.court_district}`,
+      'CASE DETAILS:',
+      `• Case Number: ${profile.case_number}`,
+      `• Employee Name: ${profile.employee_name}`,
+      `• Creditor: ${profile.creditor}`,
+      `• Court District: ${profile.court_district}`,
+      profile.law_firm ? `• Law Firm: ${profile.law_firm}` : null,
       '',
-      `BALANCE INFORMATION AS OF ${currentDate.toUpperCase()}:`,
-      `• Original Amount Owed: $${profile.total_amount_owed}`,
-      `• Total Amount Paid: $${profile.amount_paid_so_far}`,
-      `• Current Balance Remaining: $${profile.balance_remaining}`,
-      `• Current Status: ${profile.status?.toUpperCase()}`,
+      `BALANCE CERTIFICATION AS OF ${currentDate.toUpperCase()}:`,
+      `• Original Amount Owed: $${Number(profile.total_amount_owed).toFixed(2)}`,
+      `• Total Amount Paid: $${Number(profile.amount_paid_so_far).toFixed(2)}`,
+      `• Current Balance Remaining: $${Number(profile.balance_remaining).toFixed(2)}`,
+      `• Account Status: ${profile.status?.toUpperCase()}`,
       '',
-      `This certification is issued in accordance with our records and is`,
-      `accurate as of the date shown above.`,
+      'This certification is issued based on our payroll records maintained',
+      'in the ordinary course of business and is accurate as of the date shown.',
       '',
-      '',
-      'Sincerely,',
-      '',
-      '',
-      '_________________________',
-      'Authorized Representative',
-      'Payroll Department'
-    ];
+      'If you require any additional information regarding this garnishment,',
+      'please contact our Payroll Department at the number listed above.',
+      ''
+    ].filter(Boolean);
     
-    let yPosition = 60;
-    letterBody.forEach(line => {
-      doc.text(line, 20, yPosition);
-      yPosition += 7;
+    let yPosition = 85;
+    letterContent.forEach(line => {
+      if (line.startsWith('•')) {
+        doc.text(line, 25, yPosition);
+      } else if (line === 'CASE DETAILS:' || line.includes('BALANCE CERTIFICATION')) {
+        doc.setFont('helvetica', 'bold');
+        doc.text(line, 20, yPosition);
+        doc.setFont('helvetica', 'normal');
+      } else {
+        doc.text(line, 20, yPosition);
+      }
+      yPosition += 6;
     });
     
-    doc.save(`Balance_Certification_${profile.case_number}_${currentDate.replace(/\//g, '-')}.pdf`);
+    // Signature block
+    yPosition += 10;
+    doc.text('Sincerely,', 20, yPosition);
+    yPosition += 25;
+    doc.text('_________________________________', 20, yPosition);
+    yPosition += 7;
+    doc.text('Authorized Representative', 20, yPosition);
+    yPosition += 6;
+    doc.text('Payroll Department', 20, yPosition);
+    yPosition += 6;
+    doc.text('Custom Maids Co.', 20, yPosition);
+    
+    addFooter(doc, pageHeight);
+    
+    doc.save(`Balance_Certification_${profile.case_number}_${new Date().toISOString().split('T')[0]}.pdf`);
     
     toast({
-      title: "Certification Generated",
-      description: "Balance certification letter has been downloaded."
+      title: "Balance Certification Generated",
+      description: "Professional balance certification letter has been downloaded."
     });
   };
 
   const generateAffidavit = () => {
     const doc = new jsPDF();
+    const pageHeight = doc.internal.pageSize.height;
     const currentDate = new Date().toLocaleDateString();
     
-    // Header
+    addCompanyHeader(doc);
+    
+    // Document title
     doc.setFontSize(16);
-    doc.text('AFFIDAVIT OF PAYMENT RECORDS', 20, 20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AFFIDAVIT OF GARNISHMENT PAYMENT RECORDS', 20, 55);
     
-    doc.setFontSize(12);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
     
-    const affidavitText = [
+    const affidavitContent = [
       '',
-      `STATE OF _____________`,
-      `COUNTY OF ___________`,
+      'STATE OF ________________',
+      'COUNTY OF ______________',
       '',
-      `I, _________________________, being duly sworn, depose and state:`,
+      'I, ________________________________, being duly sworn under oath,',
+      'depose and state as follows:',
       '',
-      `1. I am the authorized representative of the employer in the`,
-      `   garnishment matter referenced below.`,
+      '1. I am the duly authorized representative of Custom Maids Co.,',
+      '   the employer in the garnishment matter described below.',
       '',
-      `2. I have personal knowledge of the payroll records and garnishment`,
-      `   payments made in this case.`,
+      '2. I have personal knowledge of the payroll records and',
+      '   garnishment payments made in this case.',
       '',
-      `3. The following information is true and accurate:`,
+      '3. The garnishment case information is as follows:',
       `   • Case Number: ${profile.case_number}`,
       `   • Employee Name: ${profile.employee_name}`,
       `   • Creditor: ${profile.creditor}`,
       `   • Court District: ${profile.court_district}`,
+      profile.law_firm ? `   • Law Firm: ${profile.law_firm}` : null,
       '',
       `4. Payment Summary as of ${currentDate}:`,
-      `   • Total Amount Owed: $${profile.total_amount_owed}`,
-      `   • Amount Paid to Date: $${profile.amount_paid_so_far}`,
-      `   • Balance Remaining: $${profile.balance_remaining}`,
-      `   • Total Number of Payments Made: ${installments.length}`,
+      `   • Total Amount Owed: $${Number(profile.total_amount_owed).toFixed(2)}`,
+      `   • Amount Paid to Date: $${Number(profile.amount_paid_so_far).toFixed(2)}`,
+      `   • Balance Remaining: $${Number(profile.balance_remaining).toFixed(2)}`,
+      `   • Total Number of Payments: ${installments.length}`,
       '',
-      `5. All payments have been made in accordance with the court order`,
-      `   and applicable laws.`,
+      '5. All payments have been made in accordance with applicable',
+      '   court orders and wage garnishment laws.',
       '',
-      `6. The attached payment records are true and complete copies of`,
-      `   our business records maintained in the ordinary course of business.`,
+      '6. The payment records referenced herein are true and complete',
+      '   copies of our business records maintained in the ordinary',
+      '   course of business.',
       '',
-      '',
-      '________________________________',
-      'Signature',
-      '',
-      '________________________________',
-      'Print Name',
-      '',
-      '________________________________',
-      'Title',
-      '',
-      '',
-      `Sworn to before me this _____ day of _________, 20__.`,
-      '',
-      '',
-      '________________________________',
-      'Notary Public'
-    ];
+      '7. This affidavit is made for the purpose of providing accurate',
+      '   garnishment payment information to the court or other',
+      '   authorized parties.',
+      ''
+    ].filter(Boolean);
     
-    let yPosition = 30;
-    affidavitText.forEach(line => {
-      doc.text(line, 20, yPosition);
-      yPosition += 6;
+    let yPosition = 70;
+    affidavitContent.forEach(line => {
+      if (line.startsWith('   •')) {
+        doc.text(line, 25, yPosition);
+      } else {
+        doc.text(line, 20, yPosition);
+      }
+      yPosition += 5.5;
     });
     
-    doc.save(`Affidavit_${profile.case_number}_${currentDate.replace(/\//g, '-')}.pdf`);
+    // Signature section
+    yPosition += 10;
+    doc.text('____________________________________', 20, yPosition);
+    yPosition += 7;
+    doc.text('Signature', 20, yPosition);
+    yPosition += 10;
+    doc.text('____________________________________', 20, yPosition);
+    yPosition += 7;
+    doc.text('Print Name', 20, yPosition);
+    yPosition += 10;
+    doc.text('____________________________________', 20, yPosition);
+    yPosition += 7;
+    doc.text('Title', 20, yPosition);
+    yPosition += 15;
+    
+    // Notarization section
+    doc.setFont('helvetica', 'bold');
+    doc.text('NOTARIZATION', 20, yPosition);
+    doc.setFont('helvetica', 'normal');
+    yPosition += 10;
+    
+    doc.text(`Sworn to and subscribed before me this _____ day of`, 20, yPosition);
+    yPosition += 6;
+    doc.text(`_____________, 20____.`, 20, yPosition);
+    yPosition += 15;
+    
+    doc.text('____________________________________', 20, yPosition);
+    yPosition += 7;
+    doc.text('Notary Public', 20, yPosition);
+    yPosition += 7;
+    doc.text('My commission expires: ______________', 20, yPosition);
+    
+    addFooter(doc, pageHeight);
+    
+    doc.save(`Affidavit_${profile.case_number}_${new Date().toISOString().split('T')[0]}.pdf`);
     
     toast({
       title: "Affidavit Generated",
-      description: "Affidavit template has been downloaded."
+      description: "Professional affidavit template has been downloaded."
     });
   };
 
@@ -220,7 +349,7 @@ export const CourtReportGenerator: React.FC<CourtReportGeneratorProps> = ({
           Court Evidence Reports
         </CardTitle>
         <CardDescription>
-          Generate official court-ready documents and certifications
+          Generate professional court-ready documents and certifications
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -234,7 +363,7 @@ export const CourtReportGenerator: React.FC<CourtReportGeneratorProps> = ({
             <div className="text-center">
               <div className="font-medium">Payment History</div>
               <div className="text-xs text-muted-foreground">
-                Chronological payment record
+                Official chronological record
               </div>
             </div>
           </Button>
@@ -250,7 +379,7 @@ export const CourtReportGenerator: React.FC<CourtReportGeneratorProps> = ({
             <div className="text-center">
               <div className="font-medium">Balance Certification</div>
               <div className="text-xs text-muted-foreground">
-                Official balance letter
+                Formal balance verification
               </div>
             </div>
           </Button>
@@ -264,15 +393,15 @@ export const CourtReportGenerator: React.FC<CourtReportGeneratorProps> = ({
             <div className="text-center">
               <div className="font-medium">Affidavit Template</div>
               <div className="text-xs text-muted-foreground">
-                Sworn statement form
+                Sworn legal statement
               </div>
             </div>
           </Button>
         </div>
         
-        <div className="text-sm text-muted-foreground">
-          <p className="font-medium">Note:</p>
-          <p>All generated documents should be reviewed and signed by authorized personnel before submission to courts or agencies.</p>
+        <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
+          <p className="font-medium mb-1">Professional Standards:</p>
+          <p>All documents include proper headers, legal formatting, and signature blocks. Review and customize before official submission.</p>
         </div>
       </CardContent>
     </Card>

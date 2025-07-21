@@ -6,6 +6,7 @@ import { GarnishmentProfileForm } from '@/components/garnishments/GarnishmentPro
 import { GarnishmentInstallmentForm } from '@/components/garnishments/GarnishmentInstallmentForm';
 import { BulkPaymentForm } from '@/components/garnishments/BulkPaymentForm';
 import { CollectionAgencyForm } from '@/components/garnishments/CollectionAgencyForm';
+import { CollectionAgenciesList } from '@/components/garnishments/CollectionAgenciesList';
 
 export default function Garnishments() {
   return (
@@ -85,8 +86,12 @@ export default function Garnishments() {
                 Manage contact information for creditors, law firms, and collection agencies
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <CollectionAgencyForm />
+            <CardContent className="space-y-6">
+              <CollectionAgenciesList />
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Add New Organization</h3>
+                <CollectionAgencyForm />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

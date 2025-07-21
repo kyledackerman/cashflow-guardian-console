@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
 import { useGarnishmentInstallments } from '@/hooks/useGarnishmentInstallments';
+import { useGarnishmentDocuments } from '@/hooks/useGarnishmentDocuments';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +24,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { Download, FileText, Search, Filter, X, Eye, Edit } from 'lucide-react';
+import { Download, FileText, Search, Filter, X, Eye, Edit, Paperclip } from 'lucide-react';
 import { StatusManagementButtons } from './StatusManagementButtons';
 import { InstallmentEditDialog } from './InstallmentEditDialog';
 import { AuditTrail } from './AuditTrail';
@@ -34,6 +35,7 @@ import { ComplianceStatus } from './ComplianceStatus';
 export function GarnishmentProfiles() {
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useGarnishmentProfiles();
   const { installments, loading: installmentsLoading } = useGarnishmentInstallments();
+  const { documents } = useGarnishmentDocuments();
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [editingInstallment, setEditingInstallment] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -81,30 +83,15 @@ export function GarnishmentProfiles() {
       .filter(i => i.profile_id === profileId)
       .sort((a, b) => new Date(b.payroll_date).getTime() - new Date(a.payroll_date).getTime());
     
-    const nextDueDate = profileInstallments.length > 0 
-      ? new Date(Math.max(...profileInstallments.map(i => new Date(i.payroll_date).getTime())))
-      : null;
+    return { profile, installments: profileInstallments };
+  };
 
-    return { profile, installments: profileInstallments, nextDueDate };
+  const getDocumentCount = (profileId: string) => {
+    return documents.filter(doc => doc.profile_id === profileId).length;
   };
 
   const selectedProfileData = selectedProfile ? getProfileWithInstallments(selectedProfile) : null;
 
-  const getNextDueDate = (profileId: string) => {
-    const profileInstallments = installments
-      .filter(i => i.profile_id === profileId)
-      .sort((a, b) => new Date(b.payroll_date).getTime() - new Date(a.payroll_date).getTime());
-    
-    if (profileInstallments.length === 0) return 'No payments yet';
-    
-    const lastPayment = profileInstallments[0];
-    const nextPayment = new Date(lastPayment.payroll_date);
-    nextPayment.setDate(nextPayment.getDate() + 14); // Assume bi-weekly payroll
-    
-    return format(nextPayment, 'MM/dd/yyyy');
-  };
-
-  // Loading skeleton component
   const LoadingSkeleton = () => (
     <div className="space-y-4">
       <div className="flex gap-4 mb-6">
@@ -116,7 +103,7 @@ export function GarnishmentProfiles() {
         <Table>
           <TableHeader>
             <TableRow>
-                  <TableHead>Employee</TableHead>
+              <TableHead>Employee</TableHead>
               <TableHead>Creditor</TableHead>
               <TableHead>Court</TableHead>
               <TableHead>Case #</TableHead>
@@ -159,13 +146,13 @@ export function GarnishmentProfiles() {
         {/* Search and Filter Controls */}
         <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/30 rounded-lg border">
           <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by employee, creditor, case number, or law firm..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by employee, creditor, case number, or law firm..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
           
           <div className="flex gap-2">
@@ -246,6 +233,7 @@ export function GarnishmentProfiles() {
                   <TableHead>Law Firm</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Compliance</TableHead>
+                  <TableHead>Docs</TableHead>
                   <TableHead>Total Owed</TableHead>
                   <TableHead>Paid</TableHead>
                   <TableHead>Balance</TableHead>
@@ -253,61 +241,70 @@ export function GarnishmentProfiles() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProfiles.map((profile) => (
-                  <TableRow key={profile.id} className="hover-scale">
-                    <TableCell className="font-medium">{profile.employee_name}</TableCell>
-                    <TableCell>{profile.creditor}</TableCell>
-                    <TableCell className="text-sm max-w-[100px] truncate">{profile.court_district}</TableCell>
-                    <TableCell className="text-sm">{profile.case_number}</TableCell>
-                    <TableCell className="text-sm max-w-[120px] truncate">{profile.law_firm}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={
-                          profile.status === 'completed' ? 'default' : 
-                          profile.status === 'suspended' ? 'secondary' : 
-                          profile.status === 'active' ? 'default' : 'destructive'
-                        }
-                        className={
-                          profile.status === 'completed' || profile.status === 'active' ? 'bg-success text-success-foreground' : ''
-                        }
-                      >
-                        {profile.status || 'active'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <ComplianceStatus profile={profile} />
-                    </TableCell>
-                    <TableCell>{formatCurrency(Number(profile.total_amount_owed))}</TableCell>
-                    <TableCell className="text-primary">
-                      {formatCurrency(Number(profile.amount_paid_so_far))}
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={Number(profile.balance_remaining || 0) > 0 ? 'destructive' : 'default'}
-                        className={Number(profile.balance_remaining || 0) > 0 ? '' : 'bg-success text-success-foreground'}
-                      >
-                        {formatCurrency(Number(profile.balance_remaining || 0))}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedProfile(profile.id)}
-                          className="hover-scale"
+                {filteredProfiles.map((profile) => {
+                  const docCount = getDocumentCount(profile.id);
+                  return (
+                    <TableRow key={profile.id} className="hover-scale">
+                      <TableCell className="font-medium">{profile.employee_name}</TableCell>
+                      <TableCell>{profile.creditor}</TableCell>
+                      <TableCell className="text-sm max-w-[100px] truncate">{profile.court_district}</TableCell>
+                      <TableCell className="text-sm">{profile.case_number}</TableCell>
+                      <TableCell className="text-sm max-w-[120px] truncate">{profile.law_firm}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={
+                            profile.status === 'completed' ? 'default' : 
+                            profile.status === 'suspended' ? 'secondary' : 
+                            profile.status === 'active' ? 'default' : 'destructive'
+                          }
+                          className={
+                            profile.status === 'completed' || profile.status === 'active' ? 'bg-success text-success-foreground' : ''
+                          }
                         >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View Details
-                        </Button>
-                        <StatusManagementButtons 
-                          profile={profile} 
-                          onStatusChange={refetchProfiles}
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          {profile.status || 'active'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <ComplianceStatus profile={profile} />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Paperclip className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{docCount}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatCurrency(Number(profile.total_amount_owed))}</TableCell>
+                      <TableCell className="text-primary">
+                        {formatCurrency(Number(profile.amount_paid_so_far))}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={Number(profile.balance_remaining || 0) > 0 ? 'destructive' : 'default'}
+                          className={Number(profile.balance_remaining || 0) > 0 ? '' : 'bg-success text-success-foreground'}
+                        >
+                          {formatCurrency(Number(profile.balance_remaining || 0))}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedProfile(profile.id)}
+                            className="hover-scale"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View Details
+                          </Button>
+                          <StatusManagementButtons 
+                            profile={profile} 
+                            onStatusChange={refetchProfiles}
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -316,7 +313,7 @@ export function GarnishmentProfiles() {
 
       {/* Profile Detail Modal */}
       <Dialog open={!!selectedProfile} onOpenChange={() => setSelectedProfile(null)}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Garnishment Schedule - {selectedProfileData?.profile?.employee_name}
@@ -328,7 +325,6 @@ export function GarnishmentProfiles() {
           
           {selectedProfileData?.profile && (
             <div className="space-y-6">
-              {/* Profile Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card>
                   <CardHeader className="pb-3">
@@ -403,7 +399,6 @@ export function GarnishmentProfiles() {
               {/* Document Upload */}
               <DocumentUpload profileId={selectedProfileData.profile.id} />
 
-              {/* Installment History */}
               {selectedProfileData.installments.length > 0 ? (
                 <div className="rounded-md border">
                   <Table>
@@ -413,9 +408,9 @@ export function GarnishmentProfiles() {
                         <TableHead>Payroll Date</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Check Number</TableHead>
-                         <TableHead>Notes</TableHead>
-                         <TableHead>Created</TableHead>
-                         <TableHead>Actions</TableHead>
+                        <TableHead>Notes</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -434,19 +429,19 @@ export function GarnishmentProfiles() {
                               {installment.notes || '-'}
                             </div>
                           </TableCell>
-                           <TableCell>
-                             {format(new Date(installment.created_at), 'MM/dd/yyyy')}
-                           </TableCell>
-                           <TableCell>
-                             <Button
-                               variant="outline"
-                               size="sm"
-                               onClick={() => setEditingInstallment(installment)}
-                             >
-                               <Edit className="h-4 w-4 mr-1" />
-                               Edit
-                             </Button>
-                           </TableCell>
+                          <TableCell>
+                            {format(new Date(installment.created_at), 'MM/dd/yyyy')}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingInstallment(installment)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -454,30 +449,30 @@ export function GarnishmentProfiles() {
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                   No payments recorded yet for this garnishment
-                 </div>
-               )}
+                  No payments recorded yet for this garnishment
+                </div>
+              )}
 
-               {selectedProfileData && (
-                 <div className="mt-6">
-                   <AuditTrail 
-                     recordId={selectedProfileData.profile.id} 
-                     tableName="garnishment_profiles" 
-                   />
-                 </div>
-               )}
-             </div>
-           )}
-         </DialogContent>
-       </Dialog>
+              {selectedProfileData && (
+                <div className="mt-6">
+                  <AuditTrail 
+                    recordId={selectedProfileData.profile.id} 
+                    tableName="garnishment_profiles" 
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
-       <InstallmentEditDialog
-         installment={editingInstallment}
-         open={!!editingInstallment}
-         onOpenChange={(open) => !open && setEditingInstallment(null)}
-         profileBalance={selectedProfileData?.profile.balance_remaining || 0}
-         profileAmountPaid={selectedProfileData?.profile.amount_paid_so_far || 0}
-       />
-     </>
-   );
- }
+      <InstallmentEditDialog
+        installment={editingInstallment}
+        open={!!editingInstallment}
+        onOpenChange={(open) => !open && setEditingInstallment(null)}
+        profileBalance={selectedProfileData?.profile.balance_remaining || 0}
+        profileAmountPaid={selectedProfileData?.profile.amount_paid_so_far || 0}
+      />
+    </>
+  );
+}

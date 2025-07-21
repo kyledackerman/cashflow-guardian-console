@@ -74,7 +74,7 @@ export default function Garnishments() {
             <CardHeader>
               <CardTitle>Collection Agencies & Law Firms</CardTitle>
               <CardDescription>
-                Manage your database of creditors, law firms, and collection agencies for lead generation
+                Manage contact information for creditors, law firms, and collection agencies
               </CardDescription>
             </CardHeader>
             <CardContent>

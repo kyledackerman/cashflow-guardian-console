@@ -163,9 +163,9 @@ export default function Reports() {
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Reports & Analytics</h1>
+          <h1 className="text-3xl font-bold">Reports & Financial Summary</h1>
           <p className="text-muted-foreground">
-            Comprehensive financial reports and payment projections
+            Comprehensive financial reports and payment tracking
           </p>
         </div>
         <div className="flex items-center gap-4">

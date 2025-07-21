@@ -262,8 +262,14 @@ export function GarnishmentProfiles() {
                     <TableCell className="text-sm max-w-[120px] truncate">{profile.law_firm}</TableCell>
                     <TableCell>
                       <Badge 
-                        variant={profile.status === 'completed' ? 'default' : profile.status === 'suspended' ? 'secondary' : 'destructive'}
-                        className={profile.status === 'completed' ? 'bg-success text-success-foreground' : ''}
+                        variant={
+                          profile.status === 'completed' ? 'default' : 
+                          profile.status === 'suspended' ? 'secondary' : 
+                          profile.status === 'active' ? 'default' : 'destructive'
+                        }
+                        className={
+                          profile.status === 'completed' || profile.status === 'active' ? 'bg-success text-success-foreground' : ''
+                        }
                       >
                         {profile.status || 'active'}
                       </Badge>

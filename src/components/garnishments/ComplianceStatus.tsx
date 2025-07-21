@@ -25,19 +25,24 @@ export const ComplianceStatus: React.FC<ComplianceStatusProps> = ({ profile }) =
 
     if (daysDiff < 0) {
       return { status: 'overdue', label: `Overdue (${Math.abs(daysDiff)} days)`, variant: 'destructive' as const, icon: XCircle };
-    } else if (daysDiff <= 7) {
-      return { status: 'due-soon', label: `Due in ${daysDiff} days`, variant: 'destructive' as const, icon: AlertTriangle };
     } else if (daysDiff <= 14) {
-      return { status: 'upcoming', label: `Due in ${daysDiff} days`, variant: 'outline' as const, icon: Clock };
+      // Active - on schedule for next 2 weeks (green)
+      return { status: 'active', label: 'Active', variant: 'default' as const, icon: CheckCircle };
     } else {
-      return { status: 'current', label: 'Current', variant: 'secondary' as const, icon: CheckCircle };
+      return { status: 'current', label: 'Current', variant: 'secondary' as const, icon: Clock };
     }
   };
 
   const { label, variant, icon: Icon } = getComplianceStatus();
 
   return (
-    <Badge variant={variant} className="flex items-center gap-1">
+    <Badge 
+      variant={variant} 
+      className={`flex items-center gap-1 ${
+        variant === 'default' && label === 'Active' ? 'bg-success text-success-foreground' : 
+        variant === 'default' && label === 'Completed' ? 'bg-success text-success-foreground' : ''
+      }`}
+    >
       <Icon className="h-3 w-3" />
       {label}
     </Badge>

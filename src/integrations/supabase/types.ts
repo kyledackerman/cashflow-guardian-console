@@ -99,6 +99,66 @@ export type Database = {
           },
         ]
       }
+      collection_agencies: {
+        Row: {
+          active: boolean
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          contact_person: string | null
+          created_at: string
+          email: string | null
+          fax: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          state: string | null
+          type: string
+          updated_at: string
+          website: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          active?: boolean
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          fax?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          state?: string | null
+          type: string
+          updated_at?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          active?: boolean
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          fax?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          state?: string | null
+          type?: string
+          updated_at?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       employee_loan_repayments: {
         Row: {
           amount: number

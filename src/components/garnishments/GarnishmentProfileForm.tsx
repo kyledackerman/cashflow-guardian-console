@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useGarnishmentProfiles } from '@/hooks/useGarnishmentProfiles';
-import { useUsers } from '@/hooks/useUsers';
+import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from '@/hooks/use-toast';
 import { DocumentUpload } from './DocumentUpload';
 
 const formSchema = z.object({
-  employee: z.string().min(1, 'User is required'),
+  employee: z.string().min(1, 'Employee is required'),
   creditor: z.string().min(1, 'Creditor is required'),
   courtDistrict: z.string().min(1, 'Court district is required'),
   caseNumber: z.string().min(1, 'Case number is required'),
@@ -25,7 +25,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function GarnishmentProfileForm() {
-  const { users, loading: usersLoading } = useUsers();
+  const { employees, loading: employeesLoading } = useEmployees();
   const { addProfile, loading: profilesLoading } = useGarnishmentProfiles();
   const [createdProfileId, setCreatedProfileId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,14 +47,14 @@ export function GarnishmentProfileForm() {
     setIsSubmitting(true);
     
     try {
-      const user = users.find(u => u.id === data.employee);
-      if (!user) {
-        throw new Error('User not found');
+      const employee = employees.find(e => e.id === data.employee);
+      if (!employee) {
+        throw new Error('Employee not found');
       }
 
       const profile = await addProfile({
         employee_id: data.employee,
-        employee_name: user.name,
+        employee_name: employee.name,
         creditor: data.creditor,
         court_district: data.courtDistrict,
         case_number: data.caseNumber,
@@ -85,12 +85,12 @@ export function GarnishmentProfileForm() {
   };
 
   // Loading state
-  if (usersLoading) {
+  if (employeesLoading) {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading user data...</p>
+          <p className="text-muted-foreground">Loading employee data...</p>
         </div>
       </div>
     );
@@ -105,17 +105,17 @@ export function GarnishmentProfileForm() {
             name="employee"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>User</FormLabel>
+                <FormLabel>Employee</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select user" />
+                      <SelectValue placeholder="Select employee" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name}
+                    {employees.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

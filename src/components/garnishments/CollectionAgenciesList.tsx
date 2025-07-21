@@ -47,6 +47,21 @@ export function CollectionAgenciesList() {
 
   const allEntities = [...summaryData.creditors, ...summaryData.lawFirms, ...summaryData.courts];
 
+  const handleEntityClick = (entity: any) => {
+    // Filter profiles that match this entity
+    const relatedProfiles = profiles.filter(profile => {
+      switch (entity.type) {
+        case 'Creditor': return profile.creditor === entity.name;
+        case 'Law Firm': return profile.law_firm === entity.name;
+        case 'Court District': return profile.court_district === entity.name;
+        default: return false;
+      }
+    });
+    
+    console.log(`Clicked ${entity.type}: ${entity.name}`, relatedProfiles);
+    // TODO: Navigate to detailed view or show modal with related profiles
+  };
+
   const handleDelete = async (id: string) => {
     setDeletingId(id);
     try {
@@ -109,15 +124,11 @@ export function CollectionAgenciesList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Garnishment Database Summary ({allEntities.length} entities)</h3>
-      </div>
-      
       <div className="grid gap-4">
         {allEntities.map((entity, index) => {
           const IconComponent = getIcon(entity.type);
           return (
-            <Card key={`${entity.type}-${entity.name}-${index}`} className="hover:shadow-md transition-shadow">
+            <Card key={`${entity.type}-${entity.name}-${index}`} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleEntityClick(entity)}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div>

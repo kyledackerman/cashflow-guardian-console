@@ -48,6 +48,7 @@ export function CollectionAgenciesList() {
   const allEntities = [...summaryData.creditors, ...summaryData.lawFirms, ...summaryData.courts];
 
   const handleEntityClick = (entity: any) => {
+    console.log(`Clicked ${entity.type}: ${entity.name}`);
     // Filter profiles that match this entity
     const relatedProfiles = profiles.filter(profile => {
       switch (entity.type) {
@@ -58,7 +59,7 @@ export function CollectionAgenciesList() {
       }
     });
     
-    console.log(`Clicked ${entity.type}: ${entity.name}`, relatedProfiles);
+    console.log('Related profiles:', relatedProfiles);
     // TODO: Navigate to detailed view or show modal with related profiles
   };
 

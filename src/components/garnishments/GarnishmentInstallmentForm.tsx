@@ -75,14 +75,15 @@ export function GarnishmentInstallmentForm() {
     },
   });
 
-  // Get active profiles (with remaining balance)
-  const activeProfiles = profiles.filter(profile => Number(profile.balance_remaining || 0) > 0);
+  // Get active profiles (calculate balance properly)
+  const activeProfiles = profiles.filter(profile => {
+    const totalOwed = Number(profile.total_amount_owed || 0);
+    const paidSoFar = Number(profile.amount_paid_so_far || 0);
+    const calculatedBalance = totalOwed - paidSoFar;
+    return calculatedBalance > 0 && profile.status === 'active';
+  });
   
-  // Debug logging
-  console.log('All profiles:', profiles);
-  console.log('Active profiles (balance > 0):', activeProfiles);
-  console.log('Total profiles count:', profiles.length);
-  console.log('Active profiles count:', activeProfiles.length);
+  console.log('Active profiles with calculated balance:', activeProfiles);
 
   const selectedProfileId = form.watch('profileId');
   const selectedProfile = profiles.find(p => p.id === selectedProfileId);
@@ -99,7 +100,7 @@ export function GarnishmentInstallmentForm() {
     setIsSubmitting(true);
     
     try {
-      const remainingBalance = Number(selectedProfile.balance_remaining || 0);
+      const remainingBalance = Number(selectedProfile.total_amount_owed || 0) - Number(selectedProfile.amount_paid_so_far || 0);
       
       // Validate amount doesn't exceed remaining balance
       if (data.amount > remainingBalance) {
@@ -208,9 +209,9 @@ export function GarnishmentInstallmentForm() {
                       </div>
                     ) : (
                       activeProfiles.map((profile) => (
-                        <SelectItem key={profile.id} value={profile.id}>
-                          {profile.employee_name} - {profile.creditor} ({formatCurrency(Number(profile.balance_remaining || 0))} remaining)
-                        </SelectItem>
+                         <SelectItem key={profile.id} value={profile.id}>
+                           {profile.employee_name} - {profile.creditor} ({formatCurrency(Number(profile.total_amount_owed || 0) - Number(profile.amount_paid_so_far || 0))} remaining)
+                         </SelectItem>
                       ))
                     )}
                   </SelectContent>
@@ -271,9 +272,9 @@ export function GarnishmentInstallmentForm() {
                 <FormLabel>
                   Installment Amount
                   {selectedProfile && (
-                    <span className="text-sm text-muted-foreground ml-2">
-                      (Max: {formatCurrency(Number(selectedProfile.balance_remaining || 0))})
-                    </span>
+                     <span className="text-sm text-muted-foreground ml-2">
+                       (Max: {formatCurrency(Number(selectedProfile.total_amount_owed || 0) - Number(selectedProfile.amount_paid_so_far || 0))})
+                     </span>
                   )}
                 </FormLabel>
                 <FormControl>
@@ -281,7 +282,7 @@ export function GarnishmentInstallmentForm() {
                     type="number"
                     step="0.01"
                     min="0"
-                    max={selectedProfile ? Number(selectedProfile.balance_remaining || 0) : undefined}
+                    max={selectedProfile ? (Number(selectedProfile.total_amount_owed || 0) - Number(selectedProfile.amount_paid_so_far || 0)) : undefined}
                     placeholder="0.00"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -350,9 +351,9 @@ export function GarnishmentInstallmentForm() {
             </div>
             <div className="bg-muted p-4 rounded-lg">
               <div className="text-sm text-muted-foreground">Balance Remaining</div>
-              <div className="font-bold text-destructive">
-                {formatCurrency(Number(selectedProfile.balance_remaining || 0))}
-              </div>
+               <div className="font-bold text-destructive">
+                 {formatCurrency(Number(selectedProfile.total_amount_owed || 0) - Number(selectedProfile.amount_paid_so_far || 0))}
+               </div>
             </div>
           </div>
         )}

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Download, Scale } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import type { Tables } from '@/integrations/supabase/types';
 
 type GarnishmentProfile = Tables<'garnishment_profiles'>;
@@ -15,12 +15,6 @@ type GarnishmentInstallment = Tables<'garnishment_installments'>;
 interface CourtReportGeneratorProps {
   profile: GarnishmentProfile;
   installments: GarnishmentInstallment[];
-}
-
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
 }
 
 export const CourtReportGenerator: React.FC<CourtReportGeneratorProps> = ({
@@ -110,7 +104,7 @@ export const CourtReportGenerator: React.FC<CourtReportGeneratorProps> = ({
       installment.recorded_by_name || 'System'
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: tableStartY,
       head: [['Payment Date', 'Installment #', 'Amount', 'Check Number', 'Recorded By']],
       body: tableData,
@@ -127,7 +121,7 @@ export const CourtReportGenerator: React.FC<CourtReportGeneratorProps> = ({
     });
     
     // Certification section
-    const finalY = (doc as any).lastAutoTable.finalY + 20;
+    const finalY = (doc as any).previousAutoTable.finalY + 20;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('CERTIFICATION', 20, finalY);

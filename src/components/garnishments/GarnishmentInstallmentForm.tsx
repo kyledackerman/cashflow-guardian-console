@@ -102,7 +102,10 @@ export function GarnishmentInstallmentForm() {
     try {
       const remainingBalance = Number(selectedProfile.total_amount_owed || 0) - Number(selectedProfile.amount_paid_so_far || 0);
       
-      // Validate amount doesn't exceed remaining balance
+      console.log('Validation - Total owed:', selectedProfile.total_amount_owed);
+      console.log('Validation - Paid so far:', selectedProfile.amount_paid_so_far);
+      console.log('Validation - Calculated balance:', remainingBalance);
+      console.log('Validation - Payment amount:', data.amount);
       if (data.amount > remainingBalance) {
         toast({
           title: 'Invalid Amount',

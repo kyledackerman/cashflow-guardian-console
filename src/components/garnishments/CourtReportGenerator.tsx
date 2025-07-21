@@ -121,7 +121,7 @@ export const CourtReportGenerator: React.FC<CourtReportGeneratorProps> = ({
     });
     
     // Certification section
-    const finalY = (doc as any).previousAutoTable.finalY + 20;
+    const finalY = (doc as any).lastAutoTable.finalY + 20;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('CERTIFICATION', 20, finalY);

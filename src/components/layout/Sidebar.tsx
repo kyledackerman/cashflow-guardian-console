@@ -38,14 +38,14 @@ const navigation = [
     icon: CreditCard,
   },
   {
-    name: 'Garnishments',
-    href: '/garnishments',
-    icon: Scale,
-  },
-  {
     name: 'Reports',
     href: '/reports',
     icon: BarChart3,
+  },
+  {
+    name: 'Garnishments',
+    href: '/garnishments',
+    icon: Scale,
   },
 ];
 

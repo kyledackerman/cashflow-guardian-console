@@ -77,6 +77,12 @@ export function GarnishmentInstallmentForm() {
 
   // Get active profiles (with remaining balance)
   const activeProfiles = profiles.filter(profile => Number(profile.balance_remaining || 0) > 0);
+  
+  // Debug logging
+  console.log('All profiles:', profiles);
+  console.log('Active profiles (balance > 0):', activeProfiles);
+  console.log('Total profiles count:', profiles.length);
+  console.log('Active profiles count:', activeProfiles.length);
 
   const selectedProfileId = form.watch('profileId');
   const selectedProfile = profiles.find(p => p.id === selectedProfileId);

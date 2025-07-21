@@ -9,6 +9,7 @@ type GarnishmentDocumentInsert = Database['public']['Tables']['garnishment_docum
 export const useGarnishmentDocuments = () => {
   const [documents, setDocuments] = useState<GarnishmentDocument[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const fetchDocuments = async (profileId?: string, installmentId?: string) => {
     setLoading(true);
@@ -46,6 +47,30 @@ export const useGarnishmentDocuments = () => {
     description?: string
   ): Promise<GarnishmentDocument | null> => {
     try {
+      setUploading(true);
+      
+      // Check if user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to upload documents",
+          variant: "destructive"
+        });
+        return null;
+      }
+      
+      // Validate file size (10MB limit)
+      const maxSize = 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast({
+          title: "Error",
+          description: "File size must be less than 10MB",
+          variant: "destructive"
+        });
+        return null;
+      }
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
@@ -57,7 +82,7 @@ export const useGarnishmentDocuments = () => {
 
       if (uploadError) throw uploadError;
 
-      // Create document record in database
+      // Create document record in database with proper uploaded_by field
       const documentData: GarnishmentDocumentInsert = {
         file_name: file.name,
         file_type: file.type,
@@ -67,6 +92,7 @@ export const useGarnishmentDocuments = () => {
         installment_id: installmentId || null,
         category: (category as any) || 'other',
         description: description || null,
+        uploaded_by: user.id
       };
 
       const { data: dbData, error: dbError } = await supabase
@@ -75,7 +101,13 @@ export const useGarnishmentDocuments = () => {
         .select()
         .single();
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        // Clean up uploaded file if database insert fails
+        await supabase.storage
+          .from('garnishment-documents')
+          .remove([filePath]);
+        throw dbError;
+      }
 
       // Log document upload for audit trail
       await supabase.rpc('log_admin_action', {
@@ -97,14 +129,16 @@ export const useGarnishmentDocuments = () => {
       });
 
       return dbData;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading document:', error);
       toast({
         title: "Error",
-        description: "Failed to upload document",
+        description: "Failed to upload document: " + error.message,
         variant: "destructive",
       });
       return null;
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -226,6 +260,7 @@ export const useGarnishmentDocuments = () => {
   return {
     documents,
     loading,
+    uploading,
     fetchDocuments,
     uploadDocument,
     deleteDocument,
